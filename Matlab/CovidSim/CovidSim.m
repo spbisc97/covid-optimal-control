@@ -29,15 +29,20 @@ rho_1=1;rho_2=1;
 
 T=[];
 function xdot =sim(t,x)
+    %inutile
     T(end+1) = t;
-    t=floor(t);
+    %
     
+    % floor sta per valore intero di 
+    t=floor(t);
+    % in questo modo la u può cambiare ad ogni t volendo
     if(inputs(1,t)~=0);u_va=inputs(1,t);end
     if(inputs(2,t)~=0);u_1=inputs(2,t);end
     if(inputs(3,t)~=0);u_2=inputs(3,t);end
     if(inputs(4,t)~=0);u_p=inputs(4,t);end
     
     
+    %impostazione dei vari numeri sulle variabili
     S = x(1); 
     E = x(2);
     Ia = x(3); 
@@ -46,9 +51,9 @@ function xdot =sim(t,x)
     I2 = x(6);
     R = x(7);
     V= x(8);
-    
+    %uscita del sistema
     xdot=zeros(8,1);
-    
+    %sistema in se
     xdot(1)=(b - (+d1 + beta * Ia * (1 - u_p) + u_va) * S + eta * R );
     xdot(2)=(beta * Ia * (1 - u_p) * S - (d2 + k) * E);
     xdot(3)=(-(d3 + lambda * tau + gamma_1) * Ia + k * E);
@@ -62,7 +67,9 @@ end
 
 %time=linspace(1,days,days);
 tspan=[1 days];
+%opzioni di ode step massimo di integrazione =1
 opts = odeset('MaxStep',1);
+
 [t,x]=ode45(@sim,tspan,initstates,opts);
 %StateVars = ['S', 'E', 'Ia', 'Q' ,'I1', 'I2' ,'R', 'V'];
 s=x(:,1);
@@ -75,6 +82,7 @@ r=x(:,7);
 v=x(:,8);
 time=t(:,1);
 
+%plotta il tutto 
 tiledlayout(3,1)
 nexttile();
 plot(t,s);
