@@ -1,4 +1,7 @@
+
 function CovidSim(initstates,days,inputs)
+close all
+clc
 
 syms b d1 d2 d3 d4 d5 d6 d7 d8 m
 sym beta 
@@ -12,19 +15,20 @@ syms rho_1 rho_2
 %syms S E Ia Q I1 I2 R V
 %syms alpha_1 delta_1 delta_2 delta_3 delta_4
 
-u_va=0;u_1=0.4;u_2=0.5;u_p=0.9;
+u_va=0;u_1=0.2;u_2=0.15;u_p=0.3;
 
 
-d1=0.01;d2=0.01;d3=0.01;d4=0.01;d5=0.01;d6=0.01;d7=0.01;d8=0.01;b=1000;m=0.001;
+d1=0.01;d2=0.01;d3=0.01;d4=0.01;d5=0.01;d6=0.01;d7=0.01;d8=0.01;b=10000;m=0.001;
 
-beta=0.00000001;
+beta=0.000000008;
 eta=0.01; %~circa 100 giorni
-tau=0.01;
-lambda=0.01;
-k=0.1;
-p=0.1;
-sigma_1=0.01;sigma_2=0.01;
-gamma_1=0.01;gamma_2=0.01;gamma_3=0.01;
+tau=0.07; %inverso tempo medio insorgenza sintomi
+lambda=0.06; %valore medio nuovi positivi
+k=0.06; %inverso tempo medio periodo incubazione 12-14 giorni circa
+p=0.2; %percentuale persone in isolamento domiciliare rispetto alla percentuale
+    %positivi in ospedale 
+sigma_1=0.08; sigma_2 = 0.05%sigma_2=0.01;
+gamma_1=0.03;gamma_2=0.03;gamma_3=0.02;
 rho_1=1;rho_2=1;
 
 T=[];
@@ -61,7 +65,7 @@ function xdot =sim(t,x)
     xdot(5)=(-(d5 + gamma_3 + rho_1 * u_1 + sigma_2 * (1 - u_1)) * I1 + sigma_1 * Q + (1 - p) * lambda * tau * Ia);
     xdot(6)=(-(d6 + m + rho_2 * u_2) * I2 + sigma_2 * (1 - u_1) * I1);
     xdot(7)=(-(eta + d7) * R + gamma_1 * Ia + gamma_2 * Q + (gamma_3 + rho_1 * u_1) * I1 + rho_2 * u_2 * I2);
-    xdot(8)=(-d8 * V + u_va * S);
+    xdot(8)= (-d8*V+u_va * S);
     
 end
 
@@ -87,14 +91,21 @@ tiledlayout(3,1)
 nexttile();
 plot(t,s);
 legend('S');
+title('Persone non ancora infette');
 nexttile();
 plot(t,[e ia q r v])
 legend( 'E', 'Ia', 'Q' ,'R', 'V');
+title('Esposti, Infetti asintomatici, quar., guariti, vacc.')
 nexttile();
 plot(t,[i1 i2])
+title('Infetti ospedalizzati ed interapia intensiva');
 legend('I1', 'I2');
+
+
 %display(x)
 %legend('S', 'E', 'Ia', 'Q' ,'I1', 'I2' ,'R', 'V');
 %display(T)
+
+set(gcf, 'Position',  [550, 50, 700, 720])
 end
 
