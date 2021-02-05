@@ -27,10 +27,9 @@ lambda=0.06; %valore medio nuovi positivi
 k=0.06; %inverso tempo medio periodo incubazione 12-14 giorni circa
 p=0.2; %percentuale persone in isolamento domiciliare rispetto alla percentuale
     %positivi in ospedale 
-sigma_1=0.08; sigma_2 = 0.05%sigma_2=0.01;
-gamma_1=0.03;gamma_2=0.03;gamma_3=0.02;
+sigma_1=0.06; sigma_2 = 0.025%sigma_2=0.01;
+gamma_1=0.02;gamma_2=0.02;gamma_3=0.01;
 rho_1=1;rho_2=1;
-
 
 T=[];
 function xdot =sim(t,x)
