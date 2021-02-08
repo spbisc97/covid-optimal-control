@@ -4,14 +4,27 @@ function xdot=CovidSimulator(t,x)
     global beta 
     global eta 
     global tau lambda k p
-    global sigma_1 sigma_2 
+    global sigma_1 sigma_2
     global gamma_1 gamma_2 gamma_3
     global rho_1 rho_2
     
     
 
-        u_va=u(1);u_1=u(2);u_2=u(3);u_p=u(4);
-        %impostazione dei vari numeri sulle variabili
+       % u_va=u(1);u_1=u(2);u_2=u(3);u_p=u(4);
+    %impostazione dei vari numeri sulle variabili
+
+    
+    % floor sta per valore intero di 
+    
+    
+    t=ceil(t/7);
+    % in questo modo la u può cambiare ad ogni t volendo
+    %if(u(1,t)~=1);u_va=u(1,t);end
+    %if(u(2,t)~=1);u_1=u(2,t);end
+    %if(u(3,t)~=1);u_2=u(3,t);end
+    %if(u(4,t)~=1);u_p=u(4,t);end
+    u_va=u(t,1);u_1=u(t,2);u_2=u(t,3);u_p=u(t,4);
+        
         S = x(1); 
         E = x(2);
         Ia = x(3); 
