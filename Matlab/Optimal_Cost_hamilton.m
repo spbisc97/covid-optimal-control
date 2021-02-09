@@ -115,27 +115,30 @@ end
 if online_data==1
     %convert data from cell(string) to datetime
     
-    TableReal(1:160,:)=[];
+    TableReal(1,:)=[];
     TableReal.data=datetime(TableReal.data,"InputFormat","uuuu-MM-dd'T'HH:mm:ss","Format","uuuu-MM-dd");
     len=height(TableReal);
     initTime=TableReal.data(1);
     
  
-    Figura=tiledlayout(4,1);
+    Figura=tiledlayout(5,1);
     title(Figura,'Grafici');
     nexttile;
     plot(TableReal.data,TableReal.nuovi_positivi);
     title('nuovi positivi');
     nexttile;
-    plot(TableReal.data,TableReal.casi_testati);
-    title('casi testati');
+    plot(TableReal.data,TableReal.isolamento_domiciliare);
+    title('infetti in isolamento domiciliare');
     nexttile;
     plot(TableReal.data,TableReal.ricoverati_con_sintomi);
     title('ricoverati con sintomi');
     nexttile;
+    plot(TableReal.data,TableReal.terapia_intensiva);
+    title('ricoverati in terapia intensiva');
+    nexttile;
     plot(TableReal.data,TableReal.dimessi_guariti);
     title('dimessi guariti');
-    
+    set(gcf, 'Position',  [550, 50, 900, 920])
 %    f= fit(datenum(Table.data),Table.casi_testati,'poly6');
     
 end
@@ -150,5 +153,6 @@ TotalPopulation=60000000;
 TotalPopulation=TotalPopulation-table2array(TableReal(1,"totale_positivi"));
 TableModelled.date=datetime(TableModelled.date,"Format","uuuu-MM-dd");
 TableModelled(1,:)={'2020-07-23',TotalPopulation,60000,30000,table2array(TableReal(1,"isolamento_domiciliare")),table2array(TableReal(1,"ricoverati_con_sintomi")),table2array(TableReal(1,"terapia_intensiva")),30000,0};
+
 
 

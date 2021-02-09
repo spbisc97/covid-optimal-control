@@ -30,7 +30,8 @@ dZdt=zeros(1,5);
 
 Z0=ci;
 [tempoODE Z]=ode45('Modello_ODE_M_VAX', tspan, Z0);
-global t=tempoODE;
+global t
+t=tempoODE;
 
 S1=Z(:,1);
 S2=Z(:,2);
@@ -43,7 +44,8 @@ Isim=I;
 [mt nt]=size(tempoODE);
 %mt=righe di tempoODE
 tempodatireali=[1:n_V];
-global TempiReali=tempodatireali;
+global TempiReali
+TempiReali=tempodatireali;
 dist=[];
 for ii=1:n_V
     for jj=1:mt
@@ -51,7 +53,8 @@ for ii=1:n_V
     end
 end
 DistVett=reshape(dist,mt,n_V)
-global DistanzeVettore = DistVett;
+global DistanzeVettore 
+DistanzeVettore= DistVett;
 [a,b]=min(DistVett)
 
 Z=Z(b,:)
