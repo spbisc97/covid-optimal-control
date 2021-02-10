@@ -1,0 +1,37 @@
+function tableData = onlineData(fname, url)
+    websave(fname, url);
+    %opts= detectImportOptions(fname,"VariableNamesLine",1)
+    TableReal=readtable(fname);
+%     %elseif online_data==2
+%     %Table=readtable('andamento_covid.csv');
+%     
+%     %convert data from cell(string) to datetime
+%     
+%     TableReal(1,:)=[];
+%     TableReal.data=datetime(TableReal.data,"InputFormat","uuuu-MM-dd'T'HH:mm:ss","Format","uuuu-MM-dd");
+%     len=height(TableReal);
+%     initTime=TableReal.data(1);
+%     
+%  
+%     Figura=tiledlayout(5,1);
+%     title(Figura,'Grafici');
+%     nexttile;
+%     plot(TableReal.data,TableReal.nuovi_positivi);
+%     title('nuovi positivi');
+%     nexttile;
+%     plot(TableReal.data,TableReal.isolamento_domiciliare);
+%     title('infetti in isolamento domiciliare');
+%     nexttile;
+%     plot(TableReal.data,TableReal.ricoverati_con_sintomi);
+%     title('ricoverati con sintomi');
+%     nexttile;
+%     plot(TableReal.data,TableReal.terapia_intensiva);
+%     title('ricoverati in terapia intensiva');
+%     nexttile;
+%     plot(TableReal.data,TableReal.dimessi_guariti);
+%     title('dimessi guariti');
+%     set(gcf, 'Position',  [550, 50, 900, 920])
+% outputArg1 = inputArg1;
+% outputArg2 = inputArg2;
+end
+

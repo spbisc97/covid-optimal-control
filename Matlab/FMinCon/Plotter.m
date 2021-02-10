@@ -1,5 +1,6 @@
 function Plotter()
     global initstates
+    global days
     [t,x]=ode45(@CovidSimulator,[1 days],initstates);
     tiledlayout(3,1)
     nexttile();
