@@ -1,28 +1,29 @@
 close all
 clc
-%%
+%% Setup and Parameters
 %model parameters covid
-global b d1 d2 d3 d4 d5 d6 d7 d8 m 
-global beta 
-global eta 
+global b d1 d2 d3 d4 d5 d6 d7 d8 m
+global beta
+global eta
 global tau lambda k p
-global sigma_1 sigma_2 
+global sigma_1 sigma_2
 global gamma_1 gamma_2 gamma_3
 global rho_1 rho_2
+global OptFunVal
 %global u_va u_1 u_2 u_p
+OptFunVal=zeros(1,2);
 
-    
 d1=0.01;d2=0.01;d3=0.01;d4=0.01;d5=0.01;d6=0.01;d7=0.01;d8=0;
 b=1180; m=0.09;
-    
-beta=0.000000008;
+
+beta=1e-9;
 eta=0.01; %~circa 100 giorni
-tau=0.07; %inverso tempo medio insorgenza sintomi
-lambda=0.06; %valore medio nuovi positivi
-k=0.06; %inverso tempo medio periodo incubazione 12-14 giorni circa
-p=0.2; %percentuale persone in isolamento domiciliare rispetto alla percentuale positivi in ospedale 
-sigma_1=0.08; sigma_2 = 0.05 ;%sigma_2=0.01;
-gamma_1=0.03;gamma_2=0.03;gamma_3=0.02;
+tau=0.1; %inverso tempo medio insorgenza sintomi
+lambda=0.01; %valore medio nuovi positivi
+k=0.1; %inverso tempo medio periodo incubazione (non contagiosa) 10 giorni circa
+p=0.8; %percentuale persone in isolamento domiciliare rispetto alla percentuale positivi in ospedale
+sigma_1=0.09; sigma_2 = 0.1 ;%sigma_2=0.01;
+gamma_1=0.09;gamma_2=0.08;gamma_3=0.07;
 rho_1=1;rho_2=1;
 %u_va=0;u_1=0.2;u_2=0.15;u_p=0.3;
 
@@ -30,7 +31,7 @@ rho_1=1;rho_2=1;
 % inputs = [u_va u_1 u_2 u_p];
 %stati iniziali = [S E Ia Q I1 I2 R V];
 global initstates;
-initstates=[59999728,200,4000,94,101,26,1,0];
+initstates=[59699728,150000,100000,16000,900,60,200000,0];
 % scale = 1e-8;
 % initstates = zeros(1, 8);
 % initstates(2) = vpa(200*scale);
@@ -41,15 +42,15 @@ initstates=[59999728,200,4000,94,101,26,1,0];
 % initstates(7) = vpa(1*scale);
 % initstates(1) = 1 - initstates(2)-initstates(3)-initstates(4)-initstates(5)-initstates(6)-initstates(7)
 global days;
-days=100; %tempo di esecuzione in gg
-
+days=200; %tempo di esecuzione in gg
+weeks=ceil((days)/7);
 
 global u
-u = zeros(ceil(days/7),4);
+u = zeros(weeks,4);
 u(:,1) = 0;
-u(:,2) = 0.2;
-u(:,3) = 0.15;
-u(:,4) = 0.3;
+u(:,2) = 0.5;
+u(:,3) = 0.5;
+u(:,4) = 0.5;
 
 %here u can set specific imput changes with time
 %inputs(u_p, 170) = 0.001;
@@ -57,23 +58,74 @@ u(:,4) = 0.3;
 %ObjectiveFn(initialstates',days,inputs)
 
 %% PLOT BEFORE THE OPTIMIZATION
+%figure
+%Plotter()
+
+
+%% Get The Real Data
+tableData = onlineData('dati_covid.csv', 'https://raw.githubusercontent.com/pcm-dpc/COVID-19/master/dati-andamento-nazionale/dpc-covid19-ita-andamento-nazionale.csv');
+%get data from "Presidenza del Consiglio dei Ministri - Dipartimento della Protezione Civile"
+%deta starts from February -> move to S for better realistic data
+tableData(1:(30*4),:)=[];
+global Q_real I1_real I2_real
+
+Q_real = tableData.isolamento_domiciliare(1:days,1);
+I1_real = tableData.ricoverati_con_sintomi(1:days,1);
+I2_real = tableData.terapia_intensiva(1:days,1);
+
+if size(Q_real)< days
+    disp("Not enough real data!",size(Q_real),'<',days)
+    quit(1)
+end
+
+%% Plot Real Data
+disp("Plot Real Data")
+tiledlayout(3,1)
+nexttile();
+plot((1:1:days),0);
+nexttile();
+plot((1:1:days),Q_real,"--m");
+title("In isolamento");
+legend('Q');
+nexttile();
+plot((1:1:days),I1_real,"--b",(1:1:days),I2_real,"-.r");
+title("Ospedalizzati e in terapia intensiva");
+legend( 'I1', 'I2');
+set(gcf, 'Position',  [50, 50, 900, 920])
+
+disp('Continue')
+pause(2)
+%% PARAMETERS FITTING (beta, sigma1, sigma2)
+disp("PARAMETERS FITTING")
+if exist('OptParameters.mat') %#ok<EXIST>
+    load('OptParameters.mat')
+end
+% opts = optimoptions('fmincon',...
+%     'Algorithm','interior-point', ... %default
+%     'MaxFunctionEvaluations',1000000000, ...
+%     'MaxIterations',10000000000, ... %'UseParallel',true,
+%     'FunctionTolerance',1e-13);
+options.MaxFunEvals=10000000000;
+options.TolFun=1e-12;
+options.MaxIter=10000000000;
+lb= [0, 0,0,0,0,0,0,0,0,0];
+ub=[1,1,1,1,1,1,1,1,1,1];
+guess= [sigma_1, sigma_2, gamma_1, gamma_2, gamma_3, p, rho_1, rho_2, lambda, k];
+[optPar,fval]=fmincon(@CostFunFitting,guess,[],[],[],[],lb,ub,[],options);
+save ('OptParameters', 'sigma_1', 'sigma_2', 'gamma_1', 'gamma_2', 'gamma_3', 'p', 'rho_1', 'rho_2', 'lambda', 'k');
+disp('sigma_1, sigma_2, gamma_1, gamma_2, gamma_3, p, rho_1, rho_2, lambda, k');
+disp(optPar);
+
+
+%% PLOT AFTER THE OPTIMIZATION
+disp('PLOT AFTER THE OPTIMIZATION')
 figure
 Plotter()
 
-%% PARAMETERS FITTING (beta, sigma1, sigma2)
-
-    options.MaxFunEvals=1000000;
-    %options.TolFun=1e-10;
-    options.MaxIter=10000000;
-    lb= [0.0000000001, 0.0001, 0.0001];
-    ub=[0.0000009,0.2, 0.2];
-    guess= [beta, sigma_1, sigma_2];
-    [optPar,fval]=fmincon(@CostFunFitting,guess,[],[],[],[],lb,ub,[],options);
-    disp('beta sigma1 sigma2');
-    disp(optPar);
+disp('Continue')
+pause(2)
 %% OPTIMIZATION
 
-% weeks=ceil((days)/7);
 % options.MaxFunEvals=1000000;
 % options.TolFun=1e-10;
 % options.MaxIter=10000000;
@@ -87,5 +139,5 @@ Plotter()
 % disp(optu);
 
 %% PLOT AFTER THE OPTIMIZATION
-% figure 
+% figure
 % Plotter()
