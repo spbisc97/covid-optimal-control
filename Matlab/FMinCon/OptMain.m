@@ -1,6 +1,10 @@
 close all
 clc
 %% Setup and Parameters
+%load alredy optimized data
+load_data=false;
+
+
 %model parameters covid
 global b d1 d2 d3 d4 d5 d6 d7 d8 m
 global beta
@@ -10,17 +14,20 @@ global sigma_1 sigma_2
 global gamma_1 gamma_2 gamma_3
 global rho_1 rho_2
 global OptFunVal
+global initstates
+global days
+global u
 %global u_va u_1 u_2 u_p
 OptFunVal=zeros(1,2);
 
 d1=0.01;d2=0.01;d3=0.01;d4=0.01;d5=0.01;d6=0.01;d7=0.01;d8=0;
 b=1180; m=0.09;
 
-beta=1e-9;
+beta=1e-8;
 eta=0.01; %~circa 100 giorni
 tau=0.1; %inverso tempo medio insorgenza sintomi
 lambda=0.01; %valore medio nuovi positivi
-k=0.1; %inverso tempo medio periodo incubazione (non contagiosa) 10 giorni circa
+k=0.4; %inverso tempo medio periodo incubazione (non contagiosa) 3 giorni circa
 p=0.8; %percentuale persone in isolamento domiciliare rispetto alla percentuale positivi in ospedale
 sigma_1=0.09; sigma_2 = 0.1 ;%sigma_2=0.01;
 gamma_1=0.09;gamma_2=0.08;gamma_3=0.07;
@@ -30,8 +37,8 @@ rho_1=1;rho_2=1;
 % global inputs
 % inputs = [u_va u_1 u_2 u_p];
 %stati iniziali = [S E Ia Q I1 I2 R V];
-global initstates;
-initstates=[59699728,150000,100000,16000,900,60,200000,0];
+
+initstates=[59699728,120000,200000,16000,900,60,400000,0];
 % scale = 1e-8;
 % initstates = zeros(1, 8);
 % initstates(2) = vpa(200*scale);
@@ -41,11 +48,11 @@ initstates=[59699728,150000,100000,16000,900,60,200000,0];
 % initstates(6) = vpa(26*scale);
 % initstates(7) = vpa(1*scale);
 % initstates(1) = 1 - initstates(2)-initstates(3)-initstates(4)-initstates(5)-initstates(6)-initstates(7)
-global days;
+
 days=200; %tempo di esecuzione in gg
 weeks=ceil((days)/7);
 
-global u
+
 u = zeros(weeks,4);
 u(:,1) = 0;
 u(:,2) = 0.5;
@@ -68,11 +75,12 @@ tableData = onlineData('dati_covid.csv', 'https://raw.githubusercontent.com/pcm-
 %deta starts from February -> move to S for better realistic data
 tableData(1:(30*4),:)=[];
 global Q_real I1_real I2_real
-
-Q_real = tableData.isolamento_domiciliare(1:days,1);
-I1_real = tableData.ricoverati_con_sintomi(1:days,1);
-I2_real = tableData.terapia_intensiva(1:days,1);
-
+Q=tableData.isolamento_domiciliare(1:days,1);
+I1=tableData.ricoverati_con_sintomi(1:days,1);
+I2=tableData.terapia_intensiva(1:days,1);
+Q_real = smooth(Q);
+I1_real = smooth(I1); 
+I2_real = smooth(I2);
 if size(Q_real)< days
     disp("Not enough real data!",size(Q_real),'<',days)
     quit(1)
@@ -84,20 +92,24 @@ tiledlayout(3,1)
 nexttile();
 plot((1:1:days),0);
 nexttile();
-plot((1:1:days),Q_real,"--m");
+plot((1:1:days),Q_real,"m");
+hold;
+plot((1:1:days),Q,".");
 title("In isolamento");
 legend('Q');
 nexttile();
-plot((1:1:days),I1_real,"--b",(1:1:days),I2_real,"-.r");
+plot((1:1:days),I1_real,"b",(1:1:days),I2_real,"r");
+hold;
+plot((1:1:days),I1,".",(1:1:days),I2,".");
 title("Ospedalizzati e in terapia intensiva");
 legend( 'I1', 'I2');
-set(gcf, 'Position',  [50, 50, 900, 920])
+set(gcf, 'Position',  [50, 50, 900, 620])
 
-disp('Continue')
 pause(2)
+
 %% PARAMETERS FITTING (beta, sigma1, sigma2)
 disp("PARAMETERS FITTING")
-if exist('OptParameters.mat') %#ok<EXIST>
+if exist('OptParameters.mat') && load_data %#ok<EXIST>
     load('OptParameters.mat')
 end
 % opts = optimoptions('fmincon',...
@@ -122,7 +134,6 @@ disp('PLOT AFTER THE OPTIMIZATION')
 figure
 Plotter()
 
-disp('Continue')
 pause(2)
 %% OPTIMIZATION
 

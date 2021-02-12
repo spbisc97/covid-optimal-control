@@ -35,7 +35,9 @@ Q_sim=x(:,4);
 I1_sim=x(:,5);
 I2_sim=x(:,6);
 
-J_fitting = (sum(abs(Q_real-Q_sim))/days)+(sum(abs(I1_real-I1_sim))/days)+(sum(abs(I2_real-I2_sim))/days);
+%J_fitting = (sum(((Q_real-Q_sim)./(Q_real)).^2))+(sum(((I1_real-I1_sim)./I1_real).^2)/days)+(sum(((I2_real-I2_sim)./I2_real).^2)/days);
+J_fitting = (1/2)*(sum(((Q_real-Q_sim)).^2)/days)+(sum(((I1_real-I1_sim)).^2)/days)+(sum(((I2_real-I2_sim)).^2)/days);
+
 len = length(OptFunVal(:,1));
 OptFunVal(len+1,1)=J_fitting;
 
