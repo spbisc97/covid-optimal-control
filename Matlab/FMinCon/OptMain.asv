@@ -49,7 +49,7 @@ initstates=[59699728,120000,200000,16000,900,60,400000,0];
 % initstates(7) = vpa(1*scale);
 % initstates(1) = 1 - initstates(2)-initstates(3)-initstates(4)-initstates(5)-initstates(6)-initstates(7)
 
-days=240; %tempo di esecuzione in gg
+days=120; %tempo di esecuzione in gg
 weeks=ceil((days)/7);
 
 
@@ -73,7 +73,7 @@ u(:,4) = 0.5;
 tableData = onlineData('dati_covid.csv', 'https://raw.githubusercontent.com/pcm-dpc/COVID-19/master/dati-andamento-nazionale/dpc-covid19-ita-andamento-nazionale.csv');
 %get data from "Presidenza del Consiglio dei Ministri - Dipartimento della Protezione Civile"
 %deta starts from February -> move to S for better realistic data
-tableData(1:(30*4),:)=[];
+tableData(1:(30*5),:)=[];
 global Q_real I1_real I2_real
 Q=tableData.isolamento_domiciliare(1:days,1);
 I1=tableData.ricoverati_con_sintomi(1:days,1);
@@ -120,9 +120,9 @@ end
 options.MaxFunEvals=10000000000;
 options.TolFun=1e-12;
 options.MaxIter=10000000000;
-lb= [0.00001,0.00001 ,0,0.001,0.001, 0.3,0.001,0.1];
-    ub=[0.1,0.1 ,1,0.1,0.9, 0.99,0.7,0.8];
-    guess= [sigma_1, sigma_2, gamma_1, gamma_2, gamma_3, p, lambda, k];
+lb= [0.00001,0.00001 ,0,0.001,0.001, 0.3,0,0,0,0.1];
+    ub=[0.1,0.1 ,1,0.1,0.9, 0.,1,1,1,0.8];
+    guess= [sigma_1, sigma_2, gamma_1, gamma_2, gamma_3, p, rho_1, rho_2, lambda, k];
 for elem = 1:1:weeks
     len=length(lb);
     lb(len+1:len+3)=[0,0,0];
@@ -130,7 +130,7 @@ for elem = 1:1:weeks
     guess(len+1:len+3)=u(elem,2:4);
 end
 [optPar,fval]=fmincon(@CostFunFitting,guess,[],[],[],[],lb,ub,[],options);
-save ('OptParameters', 'sigma_1', 'sigma_2', 'gamma_1', 'gamma_2', 'gamma_3', 'p', 'rho_1', 'rho_2', 'lambda', 'k');
+save ('OptParameters', 'sigma_1', 'sigma_2', 'gamma_1', 'gamma_2', 'gamma_3', 'p', 'rho_1', 'rho_2', 'lambda', 'k','u');
 disp('sigma_1, sigma_2, gamma_1, gamma_2, gamma_3, p, rho_1, rho_2, lambda, k, u');
 disp(optPar);
 
@@ -138,15 +138,11 @@ disp(optPar);
 %% PLOT AFTER THE OPTIMIZATION
 disp('PLOT AFTER THE OPTIMIZATION')
 figure
-fittingPlot=Plotter();
+Plotter()
 
 pause(2)
 %% OPTIMIZATION
 
-% disp("CONTROL OPTIMIZATION")
-% if exist('OptControls.mat') && load_data %#ok<EXIST>
-%     load('OptControls.mat')
-% end
 % options.MaxFunEvals=1000000;
 % options.TolFun=1e-10;
 % options.MaxIter=10000000;
@@ -160,24 +156,5 @@ pause(2)
 % disp(optu);
 
 %% PLOT AFTER THE OPTIMIZATION
-% disp('PLOT AFTER OPTIMIZATION')
 % figure
-% controlPlot=Plotter()
-
-%% Save some info
-%for later
-save ('OptParameters', 'sigma_1', 'sigma_2', 'gamma_1',...
- 'gamma_2', 'gamma_3', 'p', 'rho_1', 'rho_2', ...
-'lambda', 'k');
-save ('OptControl', 'u');
-%forever
-pos='Vars/';
-place=strcat(pos,datestr(now));
-para=strcat(place,'-Parameters.mat');
-save (para, 'sigma_1', 'sigma_2', 'gamma_1', ...
-'gamma_2', 'gamma_3', 'p', 'rho_1', 'rho_2', 'lambda', 'k','u' ...
-);
-image=strcat(place,'-Fitting.png');
-saveas(fittingPlot,image);
-image2=strcat(place,'-Control.png');
-saveas(controlPlot,image2);
+% Plotter()
