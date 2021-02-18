@@ -30,12 +30,12 @@ V= x(8);
 xdot=zeros(8,1);
 
 xdot(1)=(b - (+d1 + beta  * Ia * (1 - u_p) + u_va) * S + eta * R );
-xdot(2)=(beta * Ia * (1 - u_p) * S - (d2 + k) * E);
-xdot(3)=(-(d3 + lambda * tau + gamma_1) * Ia + k * E);
-xdot(4)=(-(d4 + gamma_2 + sigma_1) * Q + p * lambda * tau * Ia);
-xdot(5)=(-(d5 + gamma_3 + rho_1 * u_1 + sigma_2 * (1 - u_1)) * I1 + sigma_1 * Q + (1 - p) * lambda * tau * Ia);
-xdot(6)=(-(d6 + m + rho_2 * u_2) * I2 + sigma_2 * (1 - u_1) * I1);
-xdot(7)=(-(eta + d7) * R + gamma_1 * Ia + gamma_2 * Q + (gamma_3 + rho_1 * u_1) * I1 + rho_2 * u_2 * I2);
+xdot(2)=(beta * Ia * (1 - u_p) * S - (d2 + k(t)) * E);
+xdot(3)=(-(d3 + lambda(t) * tau + gamma_1(t)) * Ia + k(t) * E);
+xdot(4)=(-(d4 + gamma_2(t) + sigma_1(t)) * Q + p(t) * lambda(t) * tau * Ia);
+xdot(5)=(-(d5 + gamma_3(t) + rho_1 * u_1 + sigma_2(t) * (1 - u_1)) * I1 + sigma_1(t) * Q + (1 - p(t)) * lambda(t) * tau * Ia);
+xdot(6)=(-(d6 + m + rho_2 * u_2) * I2 + sigma_2(t) * (1 - u_1) * I1);
+xdot(7)=(-(eta + d7) * R + gamma_1(t) * Ia + gamma_2(t) * Q + (gamma_3(t) + rho_1 * u_1) * I1 + rho_2 * u_2 * I2);
 xdot(8)= (-d8*V+u_va * S);
 
 end

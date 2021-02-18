@@ -6,22 +6,22 @@ global  sigma_1 sigma_2 %beta
 global gamma_1 gamma_2 gamma_3 p
 global lambda k
 global Q_real I1_real I2_real OptFunVal
-global u
+%global u
 
 
 
-sigma_1 = parameters(1);
-sigma_2 = parameters(2);
-gamma_1 = parameters(3);
-gamma_2  = parameters(4);
-gamma_3= parameters(5);
-p = parameters(6);
-lambda = parameters(7);
-k = parameters(8);
-weeks=ceil((days)/7);
-for elem = 1:1:weeks
-    u(elem,2:4)=parameters((elem-1)*3+9:(elem-1)*3+11);
-end
+sigma_1 = parameters(:,1);
+sigma_2 = parameters(:,2);
+gamma_1 = parameters(:,3);
+gamma_2  = parameters(:,4);
+gamma_3= parameters(:,5);
+p = parameters(:,6);
+lambda = parameters(:,7);
+k = parameters(:,8);
+% weeks=ceil((days)/7);
+% for elem = 1:1:weeks
+%     u(elem,2:4)=parameters((elem-1)*3+9:(elem-1)*3+11);
+% end
 %beta = parameters(11);
 
 %S_real = zeros(sizeTable(1),1);
