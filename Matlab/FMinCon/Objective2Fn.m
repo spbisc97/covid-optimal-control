@@ -1,8 +1,8 @@
-function J=ObjectiveFn(input)
+function J=Objective2Fn(input)
     global initstates;
+    global OptFunVal;
     global days;
     global u
-    global OptFunVal
     
     %time=linspace(1,days,days);
     tspan=[1 days];

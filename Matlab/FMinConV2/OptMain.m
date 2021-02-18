@@ -1,4 +1,5 @@
 close all
+clear
 clc
 %% Setup and Parameters
 %load alredy optimized data
@@ -141,7 +142,7 @@ pause(2)
 
 %% PARAMETERS FITTING (beta, sigma1, sigma2)
 disp("PARAMETERS FITTING")
-if exist('OptParameters.mat') && load_data %#ok<EXIST>
+if exist('OptParameters.mat','file') && load_data 
     load('OptParameters.mat')
 end
 % opts = optimoptions('fmincon',...
@@ -174,7 +175,7 @@ fittingPlot=Plotter();
 
 pause(2)
 %% OPTIMIZATION
-if exist('OptControl.mat') && load_data %#ok<EXIST>
+if exist('OptControl.mat','file') && load_data
     load('OptControl.mat')
 end
 disp('CONTROL OPTIMIZATION')
