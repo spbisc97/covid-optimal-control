@@ -19,7 +19,7 @@ global initstates
 global days
 global u
 %global u_va u_1 u_2 u_p
-OptFunVal=zeros(1,2);
+OptFunVal=zeros(1,5);
 
 d1=0.01;d2=0.01;d3=0.01;d4=0.01;d5=0.01;d6=0.01;d7=0.01;d8=0;
 b=1180; m=0.09;
@@ -109,39 +109,39 @@ set(gcf, 'Position',  [50, 50, 900, 620])
 pause(2)
 
 %% PARAMETERS FITTING (beta, sigma1, sigma2)
-disp("PARAMETERS FITTING")
-if exist('OptParameters.mat','file') && load_data
-    load('OptParameters.mat')
-end
-% opts = optimoptions('fmincon',...
-%     'Algorithm','interior-point', ... %default
-%     'MaxFunctionEvaluations',1000000000, ...
-%     'MaxIterations',10000000000, ... %'UseParallel',true,
-%     'FunctionTolerance',1e-13);
-options.MaxFunEvals=100000000;
-options.TolFun=1e-9;
-options.MaxIter=100000000;
-lb= [0.00001,0.00001 ,0,0.001,0.001, 0.3,0.001,0.1];
-ub=[0.1,0.1 ,1,0.1,0.9, 0.99,0.7,0.8];
-guess= [sigma_1, sigma_2, gamma_1, gamma_2, gamma_3, p, lambda, k];
-for elem = 1:1:weeks
-    len=length(lb);
-    lb(len+1:len+3)=[0,0,0];
-    ub(len+1:len+3)=[0.9,0.9,0.9];
-    guess(len+1:len+3)=u(elem,2:4);
-end
-[optPar,fval]=fmincon(@CostFunFitting,guess,[],[],[],[],lb,ub,[],options);
-disp('sigma_1, sigma_2, gamma_1, gamma_2, gamma_3, p, rho_1, rho_2, lambda, k, u');
-disp(optPar);
+% disp("PARAMETERS FITTING")
+% if exist('OptParameters.mat','file') && load_data
+%     load('OptParameters.mat')
+% end
+% % opts = optimoptions('fmincon',...
+% %     'Algorithm','interior-point', ... %default
+% %     'MaxFunctionEvaluations',1000000000, ...
+% %     'MaxIterations',10000000000, ... %'UseParallel',true,
+% %     'FunctionTolerance',1e-13);
+% options.MaxFunEvals=100000000;
+% options.TolFun=1e-9;
+% options.MaxIter=100000000;
+% lb= [0.00001,0.00001 ,0,0.001,0.001, 0.3,0.001,0.1];
+% ub=[0.1,0.1 ,1,0.1,0.9, 0.99,0.7,0.8];
+% guess= [sigma_1, sigma_2, gamma_1, gamma_2, gamma_3, p, lambda, k];
+% for elem = 1:1:weeks
+%     len=length(lb);
+%     lb(len+1:len+3)=[0,0,0];
+%     ub(len+1:len+3)=[0.9,0.9,0.9];
+%     guess(len+1:len+3)=u(elem,2:4);
+% end
+% [optPar,fval]=fmincon(@CostFunFitting,guess,[],[],[],[],lb,ub,[],options);
+% disp('sigma_1, sigma_2, gamma_1, gamma_2, gamma_3, p, rho_1, rho_2, lambda, k, u');
+% disp(optPar);
 
 
-%% PLOT AFTER THE OPTIMIZATION
+%% PLOT AFTER THE FITTING OPTIMIZATION
 disp('PLOT AFTER THE OPTIMIZATION')
 figure
 fittingPlot=Plotter();
 
 pause(2)
-%% OPTIMIZATION
+%% OPTIMIZATION SETTINGS
 
 disp("CONTROL OPTIMIZATION")
 if exist('OptControls.mat','file') && load_data
@@ -155,14 +155,45 @@ ub=zeros(weeks,4);
 ub(:,:)=0.999;
 guess=zeros(weeks,4);%guess iniziali inputs
 guess(:,:)=0.5;
+
+%% FIRST STRATEGY 
+controlPlot = zeros(1,4);
+disp('################### FIRST STRATEGY #####################')
 [optu,fval]=fmincon(@ObjectiveFn,guess,[],[],[],[],lb,ub,[],options);
 disp('u_va u_1 u_2 u_p');
 disp(optu);
+figure
+controlPlot(1) = Plotter();
+
+%% SECOND STRATEGY 
+disp('################### SECOND STRATEGY #####################')
+[optu,fval]=fmincon(@Objective2Fn,guess,[],[],[],[],lb,ub,[],options);
+disp('u_va u_1 u_2 u_p');
+disp(optu);
+figure
+controlPlot(2)=Plotter();
+
+%% THIRD STRATEGY
+disp('################### THIRD STRATEGY #####################')
+[optu,fval]=fmincon(@Objective3Fn,guess,[],[],[],[],lb,ub,[],options);
+disp('u_va u_1 u_2 u_p');
+disp(optu);
+figure
+controlPlot(3)=Plotter();
+
+%% FOURTH STRATEGY
+disp('################### FOURTH STRATEGY #####################')
+[optu,fval]=fmincon(@Objective4Fn,guess,[],[],[],[],lb,ub,[],options);
+disp('u_va u_1 u_2 u_p');
+disp(optu);
+figure
+controlPlot(4)=Plotter();
 
 %% PLOT AFTER THE OPTIMIZATION
-disp('PLOT AFTER OPTIMIZATION')
-figure;
-controlPlot=Plotter();
+% disp('PLOT AFTER OPTIMIZATION')
+% figure;
+% controlPlot=Plotter();
+
 
 %% Save some info
 %for later
@@ -176,7 +207,7 @@ if ~exist('Vars/','dir')
 mkdir Vars;
 end
 pos='Vars/';
-place=strcat(pos,datestr(now));
+place=strcat(pos,datestr(now,'mmmm-dd-yyyy_HH-MM'));
 para=strcat(place,'-Parameters.mat');
 save (para, 'sigma_1', 'sigma_2', 'gamma_1', ...
     'gamma_2', 'gamma_3', 'p', 'rho_1', 'rho_2', 'lambda', 'k','u' ...
@@ -186,6 +217,9 @@ if exist('fittingPlot','var')
     saveas(fittingPlot,image);
 end
 if exist('controlPlot','var')
-    image2=strcat(place,'-Control.png');
-    saveas(controlPlot,image2);
+    for i = 1:length(controlPlot)
+        
+        image2=strcat(place,'-Control',string(i),'.png');
+        saveas(controlPlot(i),image2);
+    end
 end

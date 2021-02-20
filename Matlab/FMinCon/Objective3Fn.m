@@ -1,4 +1,4 @@
-function J=Objective2Fn(input)
+function J=Objective3Fn(input)
     global initstates;
     global OptFunVal;
     global days;
@@ -25,10 +25,10 @@ function J=Objective2Fn(input)
 
     %funzione di costo
     
-    J=0.9*(sum(i1))+0.9*(sum(i2))+1e-3*sum(u)*sum(u)';
+    J=-0.9*(sum(s))+0.9*(sum(i1))+0.9*(sum(i2))+1e-3*sum(u)*sum(u)';
 
-    len = length(OptFunVal(:,3));
-    OptFunVal(len+1,3)=J;
+    len = length(OptFunVal(:,4));
+    OptFunVal(len+1,4)=J;
     
     end
     
