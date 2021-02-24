@@ -2,7 +2,7 @@ function J=Objective3Fn(input)
     global initstates;
     global OptFunVal;
     global days;
-    global u
+    global u Functionals
     
     %time=linspace(1,days,days);
     tspan=[1 days];
@@ -26,7 +26,11 @@ function J=Objective3Fn(input)
     %funzione di costo
     
     J=-0.9*(sum(s))+0.9*(sum(i1))+0.9*(sum(i2))+1e-3*sum(u)*sum(u)';
-
+if Functionals(4) ~= "-0.9*(sum(s))+0.9*(sum(i1))+0.9*(sum(i2))+1e-3*sum(u)*sum(u)'"
+    Functionals(4) = "-0.9*(sum(s))+0.9*(sum(i1))+0.9*(sum(i2))+1e-3*sum(u)*sum(u)'";
+end
+    
+    
     len = length(OptFunVal(:,4));
     OptFunVal(len+1,4)=J;
     

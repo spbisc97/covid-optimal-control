@@ -2,7 +2,7 @@ function J=Objective4Fn(input)
     global initstates;
     global OptFunVal;
     global days;
-    global u
+    global u Functionals
     
     %time=linspace(1,days,days);
     tspan=[1 days];
@@ -26,7 +26,11 @@ function J=Objective4Fn(input)
     %funzione di costo
     
     J=-0.9*(sum(v))+1e-3*sum(u)*sum(u)';
-
+if Functionals(4) ~= "-0.9*(sum(v))+1e-3*sum(u)*sum(u)'"
+    Functionals(4) = "-0.9*(sum(v))+1e-3*sum(u)*sum(u)'";
+end
+    
+    
     len = length(OptFunVal(:,5));
     OptFunVal(len+1,5)=J;
     

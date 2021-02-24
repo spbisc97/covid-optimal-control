@@ -5,6 +5,14 @@ clc
 %load alredy optimized data
 load_data=false;
 
+fitting=1;
+
+optimization1=0;
+optimization2=0;
+optimization3=0;
+optimization4=0;
+
+
 
 %model parameters covid
 global b d1 d2 d3 d4 d5 d6 d7 d8 m
@@ -18,23 +26,27 @@ global OptFunVal
 global initstates
 global days
 global u
+global Functionals
 %global u_va u_1 u_2 u_p
 OptFunVal=zeros(1,5);
+Functionals=["a" "a" "a" "a" "a"];
+
+    
 
 d1=0.01;d2=0.01;d3=0.01;d4=0.01;d5=0.01;d6=0.01;d7=0.01;d8=0;
 b=1180; m=0.09;
 
 beta=2.5e-9;   %(60 000 000 * rt )
-eta=0.01; %~circa 100 giorni
-tau=0.1; %inverso tempo medio insorgenza sintomi
+eta=0.01; %~circa 100 giorni ~3 mesi
+tau=0.2; %inverso tempo medio insorgenza sintomi (dopo incubazione non contagiosa)= 5gg
 lambda=0.01; %valore medio nuovi positivi
-k=0.4; %inverso tempo medio periodo incubazione (non contagiosa) 5 giorni circa
-p=0.8; %percentuale persone in isolamento domiciliare rispetto alla percentuale positivi in ospedale
-sigma_1=0.09; sigma_2 = 0.1 ;%sigma_2=0.01;
-gamma_1=0.09;gamma_2=0.08;gamma_3=0.07;
-rho_1=1;rho_2=1;
-%u_va=0;u_1=0.2;u_2=0.15;u_p=0.3;
+k=0.3; %inverso tempo medio periodo incubazione (non contagiosa) 3/4 giorni circa
+p=0.8; %percentuale(guess) persone in isolamento domiciliare rispetto alla percentuale positivi in ospedale
+sigma_1=0.09; sigma_2 = 0.1; %guess tassi complicanza
+gamma_1=0.09;gamma_2=0.08;gamma_3=0.07; %guarigione spontanea
+rho_1=0.8;rho_2=0.7; % tassi di successo
 
+%u_va=0;u_1=0.2;u_2=0.15;u_p=0.3;
 % global inputs
 % inputs = [u_va u_1 u_2 u_p];
 %stati iniziali = [S E Ia Q I1 I2 R V];
@@ -50,7 +62,7 @@ initstates=[59699728,200000,300000,16000,900,60,400000,0];
 % initstates(7) = vpa(1*scale);
 % initstates(1) = 1 - initstates(2)-initstates(3)-initstates(4)-initstates(5)-initstates(6)-initstates(7)
 
-days=240; %tempo di esecuzione in gg
+days=50; %tempo di esecuzione in gg
 weeks=ceil((days)/7);
 
 
@@ -73,7 +85,7 @@ u(:,4) = 0.5;
 %% Get The Real Data
 tableData = onlineData('dati_covid.csv', 'https://raw.githubusercontent.com/pcm-dpc/COVID-19/master/dati-andamento-nazionale/dpc-covid19-ita-andamento-nazionale.csv');
 %get data from "Presidenza del Consiglio dei Ministri - Dipartimento della Protezione Civile"
-%deta starts from February -> move to S for better realistic data
+%data starts from june -> move to S for better realistic data
 tableData(1:(30*4),:)=[];
 global Q_real I1_real I2_real
 Q=tableData.isolamento_domiciliare(1:days,1);
@@ -82,6 +94,8 @@ I2=tableData.terapia_intensiva(1:days,1);
 Q_real = smooth(Q);
 I1_real = smooth(I1);
 I2_real = smooth(I2);
+%less spikes
+
 if size(Q_real)< days
     disp("Not enough real data!",size(Q_real),'<',days)
     quit(1)
@@ -109,37 +123,39 @@ set(gcf, 'Position',  [50, 50, 900, 620])
 pause(2)
 
 %% PARAMETERS FITTING (beta, sigma1, sigma2)
-% disp("PARAMETERS FITTING")
-% if exist('OptParameters.mat','file') && load_data
-%     load('OptParameters.mat')
-% end
-% % opts = optimoptions('fmincon',...
-% %     'Algorithm','interior-point', ... %default
-% %     'MaxFunctionEvaluations',1000000000, ...
-% %     'MaxIterations',10000000000, ... %'UseParallel',true,
-% %     'FunctionTolerance',1e-13);
-% options.MaxFunEvals=100000000;
-% options.TolFun=1e-9;
-% options.MaxIter=100000000;
-% lb= [0.00001,0.00001 ,0,0.001,0.001, 0.3,0.001,0.1];
-% ub=[0.1,0.1 ,1,0.1,0.9, 0.99,0.7,0.8];
-% guess= [sigma_1, sigma_2, gamma_1, gamma_2, gamma_3, p, lambda, k]; %da cambiare k con rho1 e rho2
-% for elem = 1:1:weeks
-%     len=length(lb);
-%     lb(len+1:len+3)=[0,0,0];
-%     ub(len+1:len+3)=[0.9,0.9,0.9];
-%     guess(len+1:len+3)=u(elem,2:4);
-% end
-% [optPar,fval]=fmincon(@CostFunFitting,guess,[],[],[],[],lb,ub,[],options);
-% disp('sigma_1, sigma_2, gamma_1, gamma_2, gamma_3, p, rho_1, rho_2, lambda, k, u');
-% disp(optPar);
+disp("PARAMETERS FITTING")
+if exist('OptParameters.mat','file') && load_data
+    load('OptParameters.mat') %if fitting already there, less computation time getting faster to optimum
+end
+% opts = optimoptions('fmincon',...
+%     'Algorithm','interior-point', ... %default
+%     'MaxFunctionEvaluations',1000000000, ...
+%     'MaxIterations',10000000000, ... %'UseParallel',true,
+%     'FunctionTolerance',1e-13);
+if fitting
+options.MaxFunEvals=100000000;
+options.TolFun=1e-9;
+options.MaxIter=100000000;
+lb= [0.00001,0.00001 ,0,0.001,0.001, 0.3,0.001,  0,0];
+ub=[0.1,0.1 ,1,0.1,0.9, 0.99,0.7,   0.9,0.9];
+guess= [sigma_1, sigma_2, gamma_1, gamma_2, gamma_3, p, lambda, rho_1 , rho_2]; 
+for elem = 1:1:weeks
+    len=length(lb);
+    lb(len+1:len+3)=[0,0,0];
+    ub(len+1:len+3)=[0.9,0.9,0.9];
+    guess(len+1:len+3)=u(elem,2:4);
+end
+[optPar,fval]=fmincon(@CostFunFitting,guess,[],[],[],[],lb,ub,[],options);
+disp('sigma_1, sigma_2, gamma_1, gamma_2, gamma_3, p, rho_1, rho_2, lambda, k, u');
+disp(optPar);
+
 
 
 %% PLOT AFTER THE FITTING OPTIMIZATION
 disp('PLOT AFTER THE OPTIMIZATION')
 figure
 fittingPlot=Plotter();
-
+end
 pause(2)
 %% OPTIMIZATION SETTINGS
 
@@ -156,39 +172,44 @@ ub(:,:)=0.999;
 guess=zeros(weeks,4);%guess iniziali inputs
 guess(:,:)=0.5;
 
-%% FIRST STRATEGY 
+%% FIRST STRATEGY
 controlPlot = zeros(1,4);
+if optimization1
 disp('################### FIRST STRATEGY #####################')
 [optu,fval]=fmincon(@ObjectiveFn,guess,[],[],[],[],lb,ub,[],options);
 disp('u_va u_1 u_2 u_p');
 disp(optu);
 figure
 controlPlot(1) = Plotter();
-
-%% SECOND STRATEGY 
+end
+%% SECOND STRATEGY
+if optimization2
 disp('################### SECOND STRATEGY #####################')
 [optu,fval]=fmincon(@Objective2Fn,guess,[],[],[],[],lb,ub,[],options);
 disp('u_va u_1 u_2 u_p');
 disp(optu);
 figure
 controlPlot(2)=Plotter();
-
+end
 %% THIRD STRATEGY
+if optimization3
 disp('################### THIRD STRATEGY #####################')
+
 [optu,fval]=fmincon(@Objective3Fn,guess,[],[],[],[],lb,ub,[],options);
 disp('u_va u_1 u_2 u_p');
 disp(optu);
 figure
 controlPlot(3)=Plotter();
-
+end
 %% FOURTH STRATEGY
+if optimization4
 disp('################### FOURTH STRATEGY #####################')
 [optu,fval]=fmincon(@Objective4Fn,guess,[],[],[],[],lb,ub,[],options);
 disp('u_va u_1 u_2 u_p');
 disp(optu);
 figure
 controlPlot(4)=Plotter();
-
+end
 %% PLOT AFTER THE OPTIMIZATION
 % disp('PLOT AFTER OPTIMIZATION')
 % figure;
@@ -204,13 +225,14 @@ save ('OptControl', 'u');
 %forever
 
 if ~exist('Vars/','dir')
-mkdir Vars;
+    mkdir Vars;
 end
 pos='Vars/';
 place=strcat(pos,datestr(now,'mmmm-dd-yyyy_HH-MM'));
 para=strcat(place,'-Parameters.mat');
 save (para, 'sigma_1', 'sigma_2', 'gamma_1', ...
-    'gamma_2', 'gamma_3', 'p', 'rho_1', 'rho_2', 'lambda', 'k','u' ...
+    'gamma_2', 'gamma_3', 'p', 'rho_1', 'rho_2', 'lambda', 'k','u', ...
+    'Functionals','OptFunVal' ...
     );
 if exist('fittingPlot','var')
     image=strcat(place,'-Fitting.png');
