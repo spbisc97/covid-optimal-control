@@ -3,9 +3,9 @@ clear
 clc
 %% Setup and Parameters
 %load alredy optimized data
-load_data=false;
+load_data=true;
 
-fitting=1;
+fitting=0;
 
 optimization1=0;
 optimization2=0;
@@ -32,8 +32,12 @@ OptFunVal=zeros(1,5);
 Functionals=["" "" "" "" ""];
 
 
+Population=60000000;
+Deaths2019=647000;
+d=(Deaths2019/Population)/365;
 
-d1=0.01;d2=0.01;d3=0.01;d4=0.01;d5=0.01;d6=0.01;d7=0.01;d8=0;
+d1=d;d2=d;d3=d;d4=d;d5=d;d6=d;d7=d;d8=0;
+
 b=1180; m=0.09;
 
 beta=2.5e-9;   %(60 000 000 * rt )
@@ -103,7 +107,9 @@ end
 
 %% Plot Real Data
 disp("Plot Real Data")
-tiledlayout(3,1)
+tiledlayout(4,1)
+nexttile();
+plot((1:1:days),0);
 nexttile();
 plot((1:1:days),0);
 nexttile();
@@ -126,6 +132,7 @@ pause(2)
 disp("PARAMETERS FITTING")
 if exist('OptParameters.mat','file') && load_data
     load('OptParameters.mat') %if fitting already there, less computation time getting faster to optimum
+u=ufit
 end
 % opts = optimoptions('fmincon',...
 %     'Algorithm','interior-point', ... %default
@@ -159,13 +166,36 @@ if fitting
     ufit=u;
     disp(optPar);
     
-    
+    end
     
     %% PLOT AFTER THE FITTING OPTIMIZATION
-    disp('PLOT AFTER THE OPTIMIZATION')
-    figure
-    fittingPlot=Plotter();
-end
+disp('PLOT AFTER THE OPTIMIZATION')
+initstates=[59699728,200000,300000,Q_real(1),I1_real(1),I2_real(1),400000,0];
+
+[t,x]=ode45(@CovidSimulator,[1 days],initstates);
+
+nexttile(1);
+plot(t,x(:,1));
+legend('S');
+title('Persone non ancora infette');
+nexttile(2);
+plot(t,[x(:,2) x(:,3) x(:,7) x(:,8)])
+legend( 'E', 'Ia','R', 'V', 'Location', 'northwest');
+title('Esposti, Infetti asintomatici, guariti, vacc.')
+nexttile(3);
+plot(t,x(:,4))
+legend( 'Q');
+title('Quarantena')
+nexttile(4);
+plot(t,[x(:,5) x(:,6)])
+title('Infetti ospedalizzati ed interapia intensiva');
+legend('I1', 'I2', 'Location', 'northwest');
+set(gcf, 'Position',  [800, 50, 900, 920])
+fittingPlot=gcf;
+
+
+
+
 pause(2)
 %% OPTIMIZATION SETTINGS
 
