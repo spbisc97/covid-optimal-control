@@ -38,7 +38,7 @@ d=(Deaths2019/Population)/365;
 d1=d;d2=d;d3=d;d4=d;d5=d;d6=d;d7=d;d8=0;
 b=1180; m=0.09;
 
-beta=2.5e-10;   %(60 000 000 * rt )
+beta=2.5e-;   %(60 000 000 * rt )
 eta=0;  %0.01; %~circa 100 giorni ~3 mesi
 tau=0.2; %inverso tempo medio insorgenza sintomi (dopo incubazione non contagiosa)= 5gg
 k=0.3; %inverso tempo medio periodo incubazione (non contagiosa) 3/4 giorni circa

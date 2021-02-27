@@ -46,7 +46,7 @@ opts = odeset('MaxStep',1);
 init=[initstates(1:3) Q_real(init_day) I1_real(init_day) I2_real(init_day) initstates(7:8)];
 [t,x]=ode45(@CovidSimulator,tspan,init,opts);
 %StateVars = ['S', 'E', 'Ia', 'Q' ,'I1', 'I2' ,'R', 'V'];
-%S_sim=x(:,1);
+S_sim=x(:,1);
 Q_sim=x(:,4);
 I1_sim=x(:,5);
 I2_sim=x(:,6);
@@ -54,7 +54,6 @@ I2_sim=x(:,6);
 future_initstates=[x(end,1),x(end,2),x(end,3),x(end,4),x(end,5),x(end,6),x(end,7),x(end,8)];
 %Q~10^5   I1 ~ 10^4 i1 ~10^3
 
-%J_fitting = (sum(((Q_real-Q_sim)./(Q_real)).^2))+(sum(((I1_real-I1_sim)./I1_real).^2)/days)+(sum(((I2_real-I2_sim)./I2_real).^2)/days);
 J_fitting = (1e-1)*(sum(((Q_real(init_day:final_day)-Q_sim)).^2)/days)+...
     (2)*(sum(((I1_real(init_day:final_day)-I1_sim)).^2)/days)+...
     (1e1)*(sum(((I2_real(init_day:final_day)-I2_sim)).^2)/days);
