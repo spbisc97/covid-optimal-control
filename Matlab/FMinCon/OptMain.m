@@ -125,7 +125,7 @@ hold on;
 plot((1:1:days),I1,".",(1:1:days),I2,".");
 title("Ospedalizzati e in terapia intensiva");
 legend( 'I1_r', 'I2_r');
-set(gcf, 'Position',  [800, 50, 900, 920])
+set(gcf, 'Position',  [500, 50, 800, 720])
 
 hold on;
 pause(2)
@@ -148,8 +148,8 @@ if fitting
     for month = 1:months
         
         guess= [sigma_1(month), sigma_2(month), gamma_1(month), gamma_2(month), gamma_3(month), p(month), lambda(month), rho_1(month) , rho_2(month)];
-        lb= [0.00001,0.00001 ,0,0.001,0.001, 0.3,0.001,  0,0];
-        ub=[0.1,0.1 ,0,0.1,0.9, 0.99,0.7,   0.9,0.9];
+        lb= [0.00001,0.00001 ,0.00001,0.001,0.001, 0.3,0.001,  0,0];
+        ub=[0.1,0.1 ,0.0005,0.1,0.9, 0.99,0.7,   0.9,0.9];
         
         for elem = (ceil(month*31/7)):1:(ceil((month+1)*31/7))
             if elem < weeks 
@@ -196,13 +196,15 @@ legend(nexttile(2), 'E', 'Ia','R', 'V', 'Location', 'northwest');
 title('Esposti, Infetti asintomatici, guariti, vacc.')
 nexttile(3);
 title('Quarantena');
+legend(nexttile(3), 'Q', 'Location', 'northwest');
 plot(t,x(:,4),'DisplayName','Q');
 nexttile(4);
 plot(t,x(:,5),'DisplayName','I1');
 plot(t,x(:,6),'DisplayName','I2');
 title('Infetti ospedalizzati ed interapia intensiva');
+legend(nexttile(4), 'I1', 'I2', 'Location', 'northwest');
 %legend(nexttile(4),'I1', 'I2', 'Location', 'northwest');
-set(gcf, 'Position',  [800, 50, 900, 920])
+set(gcf, 'Position',  [500, 50, 800, 720])
 fittingPlot=gcf;
 
 
