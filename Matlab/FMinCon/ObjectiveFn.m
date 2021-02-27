@@ -25,7 +25,7 @@ function J=ObjectiveFn(input)
 
     %funzione di costo
     
-    J=-0.9*(sum(s))+1e-3*sum(u)*sum(u)';
+    J=(sum(s).*1e-6)+sum(u)*sum(u)';
 
 if Functionals(2) ~= "-0.9*(sum(s))+1e-3*sum(u)*sum(u)'" 
     Functionals(2) = "-0.9*(sum(s))+1e-3*sum(u)*sum(u)'";

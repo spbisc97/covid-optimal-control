@@ -3,11 +3,12 @@ clear
 clc
 %% Setup and Parameters
 %load alredy optimized data
-load_data=false;
+load_data_fitting=true;
+load_data_optimization=false;
 
-fitting=1;
+fitting=0;
 
-optimization1=0;
+optimization1=true;
 optimization2=0;
 optimization3=0;
 optimization4=0;
@@ -59,7 +60,7 @@ initstates=[59699728,200000,300000,16000,900,60,400000,0];
 % initstates(7) = vpa(1*scale);
 % initstates(1) = 1 - initstates(2)-initstates(3)-initstates(4)-initstates(5)-initstates(6)-initstates(7)
 
-days=200; %tempo di esecuzione in gg
+days=240; %tempo di esecuzione in gg
 weeks=ceil((days)/7);
 months=ceil((days)/31);
 
@@ -110,7 +111,8 @@ disp("Plot Real Data")
 figure
 RealTile=tiledlayout(4,1);
 nexttile(1);
-plot((1:1:days),0);
+%plot((1:1:days),0);
+
 nexttile(2);
 plot((1:1:days),0);
 nexttile(3);
@@ -131,7 +133,7 @@ hold on;
 pause(2)
 %% PARAMETERS FITTING (beta, sigma1, sigma2)
 disp("PARAMETERS FITTING")
-if exist('OptParameters.mat','file') && load_data
+if exist('OptParameters.mat','file') && load_data_fitting
     load('OptParameters.mat') %if fitting already there, less computation time getting faster to optimum
     u=ufit;
 end
@@ -149,7 +151,7 @@ if fitting
         
         guess= [sigma_1(month), sigma_2(month), gamma_1(month), gamma_2(month), gamma_3(month), p(month), lambda(month), rho_1(month) , rho_2(month)];
         lb= [0.00001,0.00001 ,0.00001,0.001,0.001, 0.3,0.001,  0,0];
-        ub=[0.1,0.1 ,0.0005,0.1,0.9, 0.99,0.7,   0.9,0.9];
+        ub=[0.1,0.1 ,0.005,0.1,0.9, 0.99,0.7,   0.9,0.9];
         
         for elem = (ceil(month*31/7)):1:(ceil((month+1)*31/7))
             if elem < weeks 
@@ -181,29 +183,32 @@ end
 
 
 %% PLOT AFTER THE FITTING OPTIMIZATION
-disp('PLOT AFTER THE OPTIMIZATION')
-initstates=[59699728,200000,300000,Q_real(1),I1_real(1),I2_real(1),400000,0];
+disp('PLOT AFTER THE FITTING')
+initstates=[59699728,200000,300000,Q_real(1),I1_real(1),I2_real(1),200000,0];
 
 [t,x]=ode45(@CovidSimulator,[1 days],initstates);
 
 nexttile(1);
 plot(t,x(:,1));
+ylim([5.5e7 6.1e7])
+
 legend(nexttile(1),'S');
 title('Persone non ancora infette');
 nexttile(2);
 plot(t,[x(:,2) x(:,3) x(:,7) x(:,8)])
+ylim([0 5e6])
+
 legend(nexttile(2), 'E', 'Ia','R', 'V', 'Location', 'northwest');
 title('Esposti, Infetti asintomatici, guariti, vacc.')
 nexttile(3);
 title('Quarantena');
-legend(nexttile(3), 'Q', 'Location', 'northwest');
 plot(t,x(:,4),'DisplayName','Q');
+legend('Location', 'northwest');
 nexttile(4);
 plot(t,x(:,5),'DisplayName','I1');
 plot(t,x(:,6),'DisplayName','I2');
 title('Infetti ospedalizzati ed interapia intensiva');
-legend(nexttile(4), 'I1', 'I2', 'Location', 'northwest');
-%legend(nexttile(4),'I1', 'I2', 'Location', 'northwest');
+legend('Location', 'northwest');
 set(gcf, 'Position',  [500, 50, 800, 720])
 fittingPlot=gcf;
 
@@ -213,23 +218,21 @@ pause(2)
 %% OPTIMIZATION SETTINGS
 
 disp("CONTROL OPTIMIZATION")
-if exist('OptControls.mat','file') && load_data
+if exist('OptControls.mat','file') && load_data_optimization
     load('OptControls.mat')
 end
-options.MaxFunEvals=1000000;
-options.TolFun=1e-10;
-options.MaxIter=10000000;
 lb=zeros(weeks,4);
 ub=zeros(weeks,4);
 ub(:,:)=0.999;
 guess=zeros(weeks,4);%guess iniziali inputs
-guess(:,:)=0.5;
+guess(:,:)=1;
 
 %% FIRST STRATEGY
 controlPlot = zeros(1,4);
+ub(:,1)=0;
 if optimization1
     disp('################### FIRST STRATEGY #####################')
-    [optu,fval]=fmincon(@ObjectiveFn,guess,[],[],[],[],lb,ub,[],options);
+    [optu,fval]=fmincon(@ObjectiveFn,guess,[],[],[],[],lb,ub,[]);
     disp('u_va u_1 u_2 u_p');
     disp(optu);
     figure
@@ -275,31 +278,31 @@ end
 
 %% Save some info
 %for later
-% save ('OptParameters', 'sigma_1', 'sigma_2', 'gamma_1',...
-%     'gamma_2', 'gamma_3', 'p', 'rho_1', 'rho_2', ...
-%     'lambda', 'k','ufit');
-% save ('OptControl', 'u');
+save ('OptParameters', 'sigma_1', 'sigma_2', 'gamma_1',...
+    'gamma_2', 'gamma_3', 'p', 'rho_1', 'rho_2', ...
+    'lambda', 'k','ufit');
+save ('OptControl', 'u');
 % %forever
-% 
-% if ~exist('Vars/','dir')
-%     mkdir Vars;
-% end
-% pos='Vars/';
-% place=strcat(pos,datestr(now,'mmmm-dd-yyyy_HH-MM'));
-% para=strcat(place,'-Parameters.mat');
-% save (para, 'sigma_1', 'sigma_2', 'gamma_1', ...
-%     'gamma_2', 'gamma_3', 'p', 'rho_1', 'rho_2', 'lambda', 'k','u', ...
-%     'Functionals','OptFunVal' ...
-%     );
-% if exist('fittingPlot','var')
-%     image=strcat(place,'-Fitting.png');
-%     saveas(fittingPlot,image);
-% end
-% if exist('controlPlot','var')
-%     for i = 1:length(controlPlot)
-%         if exist('controlPlot(i)','var')
-%             image2=strcat(place,'-Control',string(i),'.png');
-%             saveas(controlPlot(i),image2);
-%         end
-%     end
-% end
+
+if ~exist('Vars/','dir')
+    mkdir Vars;
+end
+pos='Vars/';
+place=strcat(pos,datestr(now,'mmmm-dd-yyyy_HH-MM'));
+para=strcat(place,'-Parameters.mat');
+save (para, 'sigma_1', 'sigma_2', 'gamma_1', ...
+    'gamma_2', 'gamma_3', 'p', 'rho_1', 'rho_2', 'lambda', 'k','u', ...
+    'Functionals','OptFunVal' ...
+    );
+if exist('fittingPlot','var')
+    image=strcat(place,'-Fitting.png');
+    saveas(fittingPlot,image);
+end
+if exist('controlPlot','var')
+    for i = 1:length(controlPlot)
+        if exist('controlPlot(i)','var')
+            image2=strcat(place,'-Control',string(i),'.png');
+            saveas(controlPlot(i),image2);
+        end
+    end
+end
