@@ -3,13 +3,14 @@ function J=ObjectiveFn(input)
     global days;
     global u
     global OptFunVal Functionals
-    
+    weeks=ceil((days)/7);
     %time=linspace(1,days,days);
     tspan=[1 days];
     %opzioni di ode step massimo di integrazione =1
     opts = odeset('MaxStep',1);
-    
-    u=input;
+    Ucol=[eye(weeks) zeros(weeks) zeros(weeks) zeros(weeks)];
+
+    u=[Ucol*input, circshift(Ucol,[0 weeks])*input, circshift(Ucol,[0 weeks*2])*input, circshift(Ucol,[0 weeks*3])*input ];
     
     [t,x]=ode45(@CovidSimulator,tspan,initstates,opts);
     %StateVars = ['S', 'E', 'Ia', 'Q' ,'I1', 'I2' ,'R', 'V'];
@@ -25,7 +26,7 @@ function J=ObjectiveFn(input)
 
     %funzione di costo
     
-    J=(sum(s).*1e-6)+sum(u)*sum(u)';
+    J=-(sum(s).*1e-5)+sum(u)*sum(u)';
 
 if Functionals(2) ~= "-0.9*(sum(s))+1e-3*sum(u)*sum(u)'" 
     Functionals(2) = "-0.9*(sum(s))+1e-3*sum(u)*sum(u)'";

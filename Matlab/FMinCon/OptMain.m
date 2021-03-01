@@ -8,7 +8,7 @@ load_data_optimization=false;
 
 fitting=0;
 
-optimization1=true;
+optimization1=1;
 optimization2=0;
 optimization3=0;
 optimization4=0;
@@ -60,7 +60,7 @@ initstates=[59699728,200000,300000,16000,900,60,400000,0];
 % initstates(7) = vpa(1*scale);
 % initstates(1) = 1 - initstates(2)-initstates(3)-initstates(4)-initstates(5)-initstates(6)-initstates(7)
 
-days=240; %tempo di esecuzione in gg
+days=100; %tempo di esecuzione in gg
 weeks=ceil((days)/7);
 months=ceil((days)/31);
 
@@ -221,19 +221,34 @@ disp("CONTROL OPTIMIZATION")
 if exist('OptControls.mat','file') && load_data_optimization
     load('OptControls.mat')
 end
-lb=zeros(weeks,4);
-ub=zeros(weeks,4);
-ub(:,:)=0.999;
-guess=zeros(weeks,4);%guess iniziali inputs
-guess(:,:)=1;
 
+%tranform in array
+lb=zeros(weeks*4,1);
+ub=zeros(weeks*4,1);
+ub(:)=0.999;
+
+guess=zeros(weeks*4,1);%guess iniziali inputs
+
+guess(1:weeks)=0.0;
+guess(weeks+1:weeks*2)=0.3;
+guess(weeks*2+1:weeks*3)=0.1;
+guess(weeks*2+1:weeks*3)=1;
+
+
+Acontrol=[eye(weeks)*7 eye(weeks)*2 eye(weeks)*4 eye(weeks)*4];
+
+
+Bcontrol=ones(weeks,1)*2.5;
 %% FIRST STRATEGY
 controlPlot = zeros(1,4);
-ub(:,1)=0;
+ub(1:weeks)=0.0001;
+
 if optimization1
+    options=optimoptions('fmincon','Algorithm','interior-point');
     disp('################### FIRST STRATEGY #####################')
-    [optu,fval]=fmincon(@ObjectiveFn,guess,[],[],[],[],lb,ub,[]);
+    [optu,fval]=fmincon(@ObjectiveFn,guess,Acontrol,Bcontrol,[],[],lb,ub,[],options);
     disp('u_va u_1 u_2 u_p');
+    optu=u;
     disp(optu);
     figure
     controlPlot(1) = Plotter(false);
