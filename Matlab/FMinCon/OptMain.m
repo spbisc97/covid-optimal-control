@@ -4,11 +4,11 @@ clc
 %% Setup and Parameters
 %load alredy optimized data
 load_data_fitting=true;
-load_data_optimization=false;
+load_data_optimization=true;
 
 fitting=0;
 
-optimization1=1;
+optimization1=0;
 optimization2=0;
 optimization3=0;
 optimization4=0;
@@ -128,7 +128,7 @@ hold on;
 plot((1:1:days),I1,".g",(1:1:days),I2,".c");
 title("Ospedalizzati e in terapia intensiva");
 legend( 'I1_r', 'I2_r');
-set(gcf, 'Position',  [500, 50, 800, 720])
+set(gcf, 'Position',   get(0, 'ScreenSize')./[1 1 2 1])
 
 hold on;
 pause(2)
@@ -151,8 +151,8 @@ if fitting
     for month = 1:months
         
         guess= [sigma_1(month), sigma_2(month), gamma_1(month), gamma_2(month), gamma_3(month), p(month), lambda(month), rho_1(month) , rho_2(month)];
-        lb= [0.00001,0.00001 ,0.00001,0.001,0.001, 0.3,0.001,  0,0];
-        ub=[0.1,0.1 ,0.005,0.1,0.9, 0.99,0.7,   0.9,0.9];
+        lb= [0.00001,0.00001 ,0.00001,0.01,0.01, 0.3,0.001,  0.2,0.2];
+        ub=[0.1,0.1 ,0.005,0.1,0.5, 0.99,0.7,   0.9,0.9];
         
         for elem = (ceil(month*31/7)):1:(ceil((month+1)*31/7))
             if elem < weeks 
@@ -210,7 +210,7 @@ plot(t,x(:,5),'b','DisplayName','I1');
 plot(t,x(:,6),'r','DisplayName','I2');
 title('Infetti ospedalizzati ed interapia intensiva');
 legend('Location', 'northwest');
-set(gcf, 'Position',  [500, 50, 800, 720])
+set(gcf, 'Position',   get(0, 'ScreenSize')./[1 1 2 1])
 fittingPlot=gcf;
 
 
@@ -219,8 +219,8 @@ pause(2)
 %% OPTIMIZATION SETTINGS
 
 disp("CONTROL OPTIMIZATION")
-if exist('OptControls.mat','file') && load_data_optimization
-    load('OptControls.mat')
+if exist('OptControl.mat','file') && load_data_optimization
+    load('OptControl.mat')
 end
 
 %tranform in array
@@ -307,8 +307,7 @@ if optimization4
 end
 %% PLOT AFTER THE OPTIMIZATION
 % disp('PLOT AFTER OPTIMIZATION')
-% figure;
-% controlPlot=Plotter(false);
+MixedPlotter(ufit,optu1,optu2,optu3,optu4);
 
 
 %% Save some info
@@ -335,9 +334,17 @@ if exist('fittingPlot','var')
 end
 if exist('controlPlot','var')
     for i = 1:length(controlPlot)
-        if exist('controlPlot(i)','var')
+        if controlPlot(i)
             image2=strcat(place,'-Control',string(i),'.png');
             saveas(controlPlot(i),image2);
         end
     end
+end
+if exist('Icomp','var')
+    image=strcat(place,'-Icomp.png');
+    saveas(Icomp,image);
+end
+if exist('ContrComp','var')
+    image=strcat(place,'-ContrComp.png');
+    saveas(ContrComp,image);
 end

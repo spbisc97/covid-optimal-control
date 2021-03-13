@@ -42,7 +42,7 @@ end
 nexttile(5);
 plot(1:1:days,[udays(:,1),udays(:,2),udays(:,3),udays(:,4)],'LineWidth',1.5)
 legend('U_v', 'U_1','U_2', 'U_p');
-%set(gcf, 'Position',  [800, 50, 900, 920])
+set(gcf,'Position',  get(0, 'ScreenSize')./[1 1 2 1]);
 plotFigure=gcf;
 
 end
