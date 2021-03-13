@@ -13,6 +13,7 @@ optimization2=0;
 optimization3=0;
 optimization4=0;
 
+optu1=0;optu2=0;optu3=0;optu4=0;
 
 
 %model parameters covid
@@ -118,13 +119,13 @@ plot((1:1:days),0);
 nexttile(3);
 plot((1:1:days),Q_real,"m");
 hold on;
-plot((1:1:days),Q,".");
+plot((1:1:days),Q,".m");
 title("In isolamento");
 legend('Q_r');
 nexttile(4);
-plot((1:1:days),I1_real,"b",(1:1:days),I2_real,"r");
+plot((1:1:days),I1_real,"g",(1:1:days),I2_real,"c");
 hold on;
-plot((1:1:days),I1,".",(1:1:days),I2,".");
+plot((1:1:days),I1,".g",(1:1:days),I2,".c");
 title("Ospedalizzati e in terapia intensiva");
 legend( 'I1_r', 'I2_r');
 set(gcf, 'Position',  [500, 50, 800, 720])
@@ -202,11 +203,11 @@ legend(nexttile(2), 'E', 'Ia','R', 'V', 'Location', 'northwest');
 title('Esposti, Infetti asintomatici, guariti, vacc.')
 nexttile(3);
 title('Quarantena');
-plot(t,x(:,4),'DisplayName','Q');
+plot(t,x(:,4),'k','DisplayName','Q');
 legend('Location', 'northwest');
 nexttile(4);
-plot(t,x(:,5),'DisplayName','I1');
-plot(t,x(:,6),'DisplayName','I2');
+plot(t,x(:,5),'b','DisplayName','I1');
+plot(t,x(:,6),'r','DisplayName','I2');
 title('Infetti ospedalizzati ed interapia intensiva');
 legend('Location', 'northwest');
 set(gcf, 'Position',  [500, 50, 800, 720])
@@ -224,8 +225,11 @@ end
 
 %tranform in array
 lb=zeros(weeks*4,1);
-ub=zeros(weeks*4,1);
+ub=zeros(weeks*4,1); %upperbound in contr
 ub(:)=0.999;
+ub(1:weeks)=1e-10;
+
+
 
 guess=zeros(weeks*4,1);%guess iniziali inputs
 
@@ -235,21 +239,34 @@ guess(weeks*2+1:weeks*3)=0.1;
 guess(weeks*2+1:weeks*3)=1;
 
 
-Acontrol=[eye(weeks)*7 eye(weeks)*2 eye(weeks)*4 eye(weeks)*4];
+fVD=189; %first Vaccine Day
+if days>fVD
+    ub(ceil(fVD/7):weeks)=0.04; %upperbound 400 mila vaccinazioni gg 
+    if days>(fVD+30)
+        ub(ceil((fVD+30)/7):weeks)=0.08; 
+        %upperbound 800 mila vaccinazioni gg
+        %da febbraio in poi
+    end
+end 
 
+
+Acontrol=[eye(weeks)*1 eye(weeks)*1 eye(weeks)*1 eye(weeks)*1];
+% constaint on sum of weeks controls (u_va*1<u_1*1<u_2*1<u_p*1)<
 
 Bcontrol=ones(weeks,1)*2.5;
+
+
 %% FIRST STRATEGY
 controlPlot = zeros(1,4);
-ub(1:weeks)=0.0001;
+
 
 if optimization1
     options=optimoptions('fmincon','Algorithm','interior-point');
     disp('################### FIRST STRATEGY #####################')
-    [optu,fval]=fmincon(@ObjectiveFn,guess,Acontrol,Bcontrol,[],[],lb,ub,[],options);
+    [optu1,fval]=fmincon(@ObjectiveFn,guess,Acontrol,Bcontrol,[],[],lb,ub,[],options);
     disp('u_va u_1 u_2 u_p');
-    optu=u;
-    disp(optu);
+    optu1=u;
+    disp(optu1);
     figure
     controlPlot(1) = Plotter(false);
     pause(2)
@@ -257,9 +274,10 @@ end
 %% SECOND STRATEGY
 if optimization2
     disp('################### SECOND STRATEGY #####################')
-    [optu,fval]=fmincon(@Objective2Fn,guess,[],[],[],[],lb,ub,[],options);
+    [optu2,fval]=fmincon(@Objective2Fn,guess,[],[],[],[],lb,ub,[],options);
     disp('u_va u_1 u_2 u_p');
-    disp(optu);
+    optu2=u;
+    disp(optu2);
     figure
     controlPlot(2)=Plotter(false);
     pause(2)
@@ -268,9 +286,10 @@ end
 if optimization3
     disp('################### THIRD STRATEGY #####################')
     
-    [optu,fval]=fmincon(@Objective3Fn,guess,[],[],[],[],lb,ub,[],options);
+    [optu3,fval]=fmincon(@Objective3Fn,guess,[],[],[],[],lb,ub,[],options);
     disp('u_va u_1 u_2 u_p');
-    disp(optu);
+     optu3=u;
+    disp(optu3);
     figure
     controlPlot(3)=Plotter(false);
     pause(2)
@@ -278,9 +297,10 @@ end
 %% FOURTH STRATEGY
 if optimization4
     disp('################### FOURTH STRATEGY #####################')
-    [optu,fval]=fmincon(@Objective4Fn,guess,[],[],[],[],lb,ub,[],options);
+    [optu4,fval]=fmincon(@Objective4Fn,guess,[],[],[],[],lb,ub,[],options);
     disp('u_va u_1 u_2 u_p');
-    disp(optu);
+    optu4=u;
+    disp(optu4);
     figure
     controlPlot(4)=Plotter(false);
     pause(2)
@@ -296,7 +316,7 @@ end
 save ('OptParameters', 'sigma_1', 'sigma_2', 'gamma_1',...
     'gamma_2', 'gamma_3', 'p', 'rho_1', 'rho_2', ...
     'lambda', 'k','ufit');
-save ('OptControl', 'u');
+save ('OptControl','optu1','optu2','optu3','optu4','u');
 % %forever
 
 if ~exist('Vars/','dir')
