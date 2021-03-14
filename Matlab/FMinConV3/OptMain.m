@@ -7,15 +7,15 @@ warning ('off','all');
 
 %load alredy optimized data
 load_data_fitting=false;
-load_data_optimization=false;
+load_data_optimization=true;
 
 
 fitting=1;
 
-optimization1=1;
-optimization2=1;
-optimization3=1;
-optimization4=1;
+optimization1=0;
+optimization2=0;
+optimization3=0;
+optimization4=0;
 
 optu1=0;optu2=0;optu3=0;optu4=0;
 
@@ -44,7 +44,7 @@ d=(Deaths2019/Population)/365;
 d1=d;d2=d;d3=d;d4=d;d5=d;d6=d;d7=d;d8=0;
 b=1180; m=0.09;
 
-beta=3.5e-10;   %(60 000 000 * rt )
+beta=3.5e-8;   %(60 000 000 * rt )
 eta=0;  %0.01; %~circa 100 giorni ~3 mesi
 tau=0.2; %inverso tempo medio insorgenza sintomi (dopo incubazione non contagiosa)= 5gg
 k=0.3; %inverso tempo medio periodo incubazione (non contagiosa) 3/4 giorni circa
@@ -154,8 +154,8 @@ if fitting
     ub=[];
     for month = 1:months     
         guess= [guess,sigma_1(month), sigma_2(month), gamma_1(month), gamma_2(month), gamma_3(month), p(month), lambda(month), rho_1(month) , rho_2(month)];
-        lb= [lb,0.0001,0.0001 ,0.00001,0.01,0.01, 0.3,0.001,  0.2,0.2];
-        ub=[ub,0.1,0.1 ,0.005,0.1,0.5, 0.99,0.7,   0.9,0.9];
+        lb= [lb,0.0001,0.0001 ,0.00001,0.01,0.01, 0.9,0.2,  0.2,0.2];
+        ub=[ub,0.1,0.1 ,0.005,0.1,0.5, 0.97,0.99,   0.9,0.9];
     end
     
     

@@ -8,7 +8,7 @@ warning ('off','all');
 %load alredy optimized data
 load_data_fitting=true;
 load_data_optimization=true;
-
+save_info=0;
 
 fitting=1;
 
@@ -333,39 +333,42 @@ end
 
 %% Save some info
 %for later
-save ('OptParameters', 'sigma_1', 'sigma_2', 'gamma_1',...
-    'gamma_2', 'gamma_3', 'p', 'rho_1', 'rho_2', ...
-    'lambda', 'k','ufit');
-save ('OptControl','optu1','optu2','optu3','optu4','u');
-% %forever
 
-if ~exist('Vars/','dir')
-    mkdir Vars;
-end
-pos='Vars/';
-place=strcat(pos,datestr(now,'mmmm-dd-yyyy_HH-MM'));
-para=strcat(place,'-Parameters.mat');
-save (para, 'sigma_1', 'sigma_2', 'gamma_1', ...
-    'gamma_2', 'gamma_3', 'p', 'rho_1', 'rho_2', 'lambda', 'k','u', ...
-    'Functionals','OptFunVal' ...
-    );
-if exist('fittingPlot','var')
-    image=strcat(place,'-Fitting.png');
-    saveas(fittingPlot,image);
-end
-if exist('controlPlot','var')
-    for i = 1:length(controlPlot)
-        if controlPlot(i)
-            image2=strcat(place,'-Control',string(i),'.png');
-            saveas(controlPlot(i),image2);
+if save_info
+    save ('OptParameters', 'sigma_1', 'sigma_2', 'gamma_1',...
+        'gamma_2', 'gamma_3', 'p', 'rho_1', 'rho_2', ...
+        'lambda', 'k','ufit');
+    save ('OptControl','optu1','optu2','optu3','optu4','u');
+    % %forever
+    
+    if ~exist('Vars/','dir')
+        mkdir Vars;
+    end
+    pos='Vars/';
+    place=strcat(pos,datestr(now,'mmmm-dd-yyyy_HH-MM'));
+    para=strcat(place,'-Parameters.mat');
+    save (para, 'sigma_1', 'sigma_2', 'gamma_1', ...
+        'gamma_2', 'gamma_3', 'p', 'rho_1', 'rho_2', 'lambda', 'k','u', ...
+        'Functionals','OptFunVal' ...
+        );
+    if exist('fittingPlot','var')
+        image=strcat(place,'-Fitting.png');
+        saveas(fittingPlot,image);
+    end
+    if exist('controlPlot','var')
+        for i = 1:length(controlPlot)
+            if controlPlot(i)
+                image2=strcat(place,'-Control',string(i),'.png');
+                saveas(controlPlot(i),image2);
+            end
         end
     end
-end
-if exist('Icomp','var')
-    image=strcat(place,'-Icomp.png');
-    saveas(Icomp,image);
-end
-if exist('ContrComp','var')
-    image=strcat(place,'-ContrComp.png');
-    saveas(ContrComp,image);
+    if exist('Icomp','var')
+        image=strcat(place,'-Icomp.png');
+        saveas(Icomp,image);
+    end
+    if exist('ContrComp','var')
+        image=strcat(place,'-ContrComp.png');
+        saveas(ContrComp,image);
+    end
 end
