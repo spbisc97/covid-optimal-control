@@ -10,12 +10,12 @@ load_data_fitting=true;
 load_data_optimization=true;
 save_info=0;
 
-fitting=1;
+fitting=0;
 
-optimization1=1;
-optimization2=1;
-optimization3=1;
-optimization4=1;
+optimization1=0;
+optimization2=0;
+optimization3=0;
+optimization4=0;
 
 optu1=0;optu2=0;optu3=0;optu4=0;
 
