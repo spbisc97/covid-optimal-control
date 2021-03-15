@@ -6,11 +6,11 @@ clc
 warning ('off','all');
 
 %load alredy optimized data
-load_data_fitting=true;
+load_data_fitting=false;
 load_data_optimization=true;
-save_info=0;
 
-fitting=0;
+
+fitting=1;
 
 optimization1=0;
 optimization2=0;
@@ -29,11 +29,11 @@ global sigma_1 sigma_2
 global gamma_1 gamma_2 gamma_3
 global rho_1 rho_2
 global OptFunVal
-global initstates future_initstates
+global initstates
 global days
 global u
 global Functionals
-global month
+
 %global u_va u_1 u_2 u_p
 OptFunVal=zeros(1,5);
 Functionals=["" "" "" "" ""];
@@ -44,7 +44,7 @@ d=(Deaths2019/Population)/365;
 d1=d;d2=d;d3=d;d4=d;d5=d;d6=d;d7=d;d8=0;
 b=1180; m=0.09;
 
-beta=3.5e-10;   %(60 000 000 * rt )
+beta=3.5e-8;   %(60 000 000 * rt )
 eta=0;  %0.01; %~circa 100 giorni ~3 mesi
 tau=0.2; %inverso tempo medio insorgenza sintomi (dopo incubazione non contagiosa)= 5gg
 k=0.3; %inverso tempo medio periodo incubazione (non contagiosa) 3/4 giorni circa
@@ -65,7 +65,7 @@ initstates=[59699728,200000,300000,16000,900,60,400000,0];
 % initstates(7) = vpa(1*scale);
 % initstates(1) = 1 - initstates(2)-initstates(3)-initstates(4)-initstates(5)-initstates(6)-initstates(7)
 
-days=245; %tempo di esecuzione in gg
+days=250; %tempo di esecuzione in gg
 weeks=ceil((days)/7);
 months=ceil((days)/31);
 
@@ -111,6 +111,8 @@ if size(Q_real)< days
     quit(1)
 end
 
+initstates=[initstates(1:3),Q_real(1),I1_real(1),I2_real(1),initstates(7:8)];
+
 %% Plot Real Data
 disp("Plot Real Data")
 figure('Name','Real Data')
@@ -145,42 +147,42 @@ if exist('OptParameters.mat','file') && load_data_fitting
     u=ufit;
 end
 
-% opts = optimoptions('fmincon',...
-%     'Algorithm','interior-point', ... %default
-%     'MaxFunctionEvaluations',1000000000, ...
-%     'MaxIterations',10000000000, ... %'UseParallel',true,
-%     'FunctionTolerance',1e-13);
+
 if fitting
-    options.MaxFunEvals=100000000;
-    options.TolFun=1e-12;
-    options.MaxIter=100000000;
-    for month = 1:months
-        
-        guess= [sigma_1(month), sigma_2(month), gamma_1(month), gamma_2(month), gamma_3(month), p(month), lambda(month), rho_1(month) , rho_2(month)];
-        lb= [0.00001,0.00001 ,0.00001,0.01,0.01, 0.3,0.001,  0.2,0.2];
-        ub=[0.1,0.1 ,0.005,0.1,0.5, 0.99,0.7,   0.9,0.9];
-        
-        for elem = (ceil(month*31/7)):1:(ceil((month+1)*31/7))
-            if elem < weeks
-                len=length(lb);
-                lb(len+1:len+3)=[0,0,0];
-                ub(len+1:len+3)=[0.9,0.9,0.9];
-                guess(len+1:len+3)=u(elem,2:4);
-            end
-        end
-        A_ineq=[];B_ineq=[];
-        %         zero_ineq=length(guess);
-        %         k_ineq=0.1;
-        %         diag=eye((weeks -1)*3);diag(:,end+1:end+3)=0;
-        %         diag(:,end+1:end+zero_ineq)=0;
-        %         A_ineq=circshift(diag,[0 zero_ineq])-circshift(diag,[0 zero_ineq+3]);
-        %         B_ineq=k_ineq*ones((weeks-1)*3,1);
-        
-        
-        
-        [optPar,fval]=fmincon(@CostFunFitting,guess,A_ineq,B_ineq,[],[],lb,ub,[],options);
-        initstates=future_initstates;
+    guess=[];
+    lb=[];
+    ub=[];
+    for month = 1:months     
+        guess= [guess,sigma_1(month), sigma_2(month), gamma_1(month), gamma_2(month), gamma_3(month), p(month), lambda(month), rho_1(month) , rho_2(month)];
+        lb= [lb,0.0001,0.0001 ,0.00001,0.01,0.01, 0.9,0.2,  0.2,0.2];
+        ub=[ub,0.1,0.1 ,0.005,0.1,0.5, 0.97,0.99,   0.9,0.9];
     end
+    
+    
+    
+    
+    for elem = 1:1:weeks
+        
+            len=length(lb);
+            lb(len+1:len+3)=[0,0,0];
+            ub(len+1:len+3)=[0.9,0.9,0.9];
+            guess(len+1:len+3)=u(elem,2:4);
+        
+    end
+    A_ineq=[];B_ineq=[];
+    
+%     zero_ineq=length(guess);
+%     k_ineq=0.1;
+    %         diag=eye((weeks -1)*3);diag(:,end+1:end+3)=0;
+    %         diag(:,end+1:end+zero_ineq)=0;
+    %         A_ineq=circshift(diag,[0 zero_ineq])-circshift(diag,[0 zero_ineq+3]);
+    %         B_ineq=k_ineq*ones((weeks-1)*3,1);
+    
+    
+    
+    [optPar,fval]=fmincon(@CostFunFitting,guess,A_ineq,B_ineq,[],[],lb,ub,[]);
+    
+    
     
     disp('sigma_1, sigma_2, gamma_1, gamma_2, gamma_3, p, rho_1, rho_2, lambda, k, u');
     
@@ -333,42 +335,39 @@ end
 
 %% Save some info
 %for later
+save ('OptParameters', 'sigma_1', 'sigma_2', 'gamma_1',...
+    'gamma_2', 'gamma_3', 'p', 'rho_1', 'rho_2', ...
+    'lambda', 'k','ufit');
+save ('OptControl','optu1','optu2','optu3','optu4','u');
+% %forever
 
-if save_info
-    save ('OptParameters', 'sigma_1', 'sigma_2', 'gamma_1',...
-        'gamma_2', 'gamma_3', 'p', 'rho_1', 'rho_2', ...
-        'lambda', 'k','ufit');
-    save ('OptControl','optu1','optu2','optu3','optu4','u');
-    % %forever
-    
-    if ~exist('Vars/','dir')
-        mkdir Vars;
-    end
-    pos='Vars/';
-    place=strcat(pos,datestr(now,'mmmm-dd-yyyy_HH-MM'));
-    para=strcat(place,'-Parameters.mat');
-    save (para, 'sigma_1', 'sigma_2', 'gamma_1', ...
-        'gamma_2', 'gamma_3', 'p', 'rho_1', 'rho_2', 'lambda', 'k','u', ...
-        'Functionals','OptFunVal' ...
-        );
-    if exist('fittingPlot','var')
-        image=strcat(place,'-Fitting.png');
-        saveas(fittingPlot,image);
-    end
-    if exist('controlPlot','var')
-        for i = 1:length(controlPlot)
-            if controlPlot(i)
-                image2=strcat(place,'-Control',string(i),'.png');
-                saveas(controlPlot(i),image2);
-            end
+if ~exist('Vars/','dir')
+    mkdir Vars;
+end
+pos='Vars/';
+place=strcat(pos,datestr(now,'mmmm-dd-yyyy_HH-MM'));
+para=strcat(place,'-Parameters.mat');
+save (para, 'sigma_1', 'sigma_2', 'gamma_1', ...
+    'gamma_2', 'gamma_3', 'p', 'rho_1', 'rho_2', 'lambda', 'k','u', ...
+    'Functionals','OptFunVal' ...
+    );
+if exist('fittingPlot','var')
+    image=strcat(place,'-Fitting.png');
+    saveas(fittingPlot,image);
+end
+if exist('controlPlot','var')
+    for i = 1:length(controlPlot)
+        if controlPlot(i)
+            image2=strcat(place,'-Control',string(i),'.png');
+            saveas(controlPlot(i),image2);
         end
     end
-    if exist('Icomp','var')
-        image=strcat(place,'-Icomp.png');
-        saveas(Icomp,image);
-    end
-    if exist('ContrComp','var')
-        image=strcat(place,'-ContrComp.png');
-        saveas(ContrComp,image);
-    end
+end
+if exist('Icomp','var')
+    image=strcat(place,'-Icomp.png');
+    saveas(Icomp,image);
+end
+if exist('ContrComp','var')
+    image=strcat(place,'-ContrComp.png');
+    saveas(ContrComp,image);
 end
