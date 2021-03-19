@@ -8,6 +8,7 @@ with closing(fileinput.FileInput(filename, inplace=True, backup='.bak')) as file
         line=line.replace('b%eta', 'beta')
         line=line.replace('th%eta', 'theta')
         line=line.replace('z%eta', 'zeta')
+        line=line.replace('alpha', '%alfa')
     
         print(line,end='')
 

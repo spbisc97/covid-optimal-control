@@ -26,6 +26,34 @@ u_v=
 (S*lambda_1 - S*lambda_8)/delta_4
 
 
+Cost Index I_1*theta_1 + I_2*theta_1 + (delta_2*u_1^2)/2 + (delta_3*u_2^2)/2 + (delta_1*u_p^2)/2 + (delta_4*u_v^2)/2
+derivate_sys
+lambda_8*u_v - lambda_1*(d_1 + u_v - I_a*beta*(u_p - 1)) - I_a*beta*lambda_2*(u_p - 1)
+k*lambda_3 - lambda_2*(d_2 + k)
+gamma_1*lambda_7 - lambda_3*(d_3 + gamma_1 + lambda*tau) + lambda*lambda_4*p*tau + S*beta*lambda_1*(u_p - 1) - S*beta*lambda_2*(u_p - 1) - lambda*lambda_5*tau*(p - 1)
+gamma_2*lambda_7 + lambda_5*sigma_1 - lambda_4*(d_4 + gamma_2 + sigma_1)
+theta_1 + lambda_7*(gamma_3 + rho_1*u_1) - lambda_5*(d_5 + gamma_3 + rho_1*u_1 - sigma_2*(u_1 - 1)) - lambda_6*sigma_2*(u_1 - 1)
+theta_1 - lambda_6*(d_6 + m + rho_2*u_2) + lambda_7*rho_2*u_2
+eta*lambda_1 - lambda_7*(d_7 + eta)
+-d_8*lambda_8
+
+ derivate_control
+delta_1*u_p + I_a*S*beta*lambda_1 - I_a*S*beta*lambda_2
+delta_2*u_1 + I_1*lambda_7*rho_1 - I_1*lambda_6*sigma_2 - I_1*lambda_5*(rho_1 - sigma_2)
+delta_3*u_2 - I_2*lambda_6*rho_2 + I_2*lambda_7*rho_2
+S*lambda_8 - S*lambda_1 + delta_4*u_v
+
+ derivate_soluzionih 
+u_p=
+-(I_a*S*beta*lambda_1 - I_a*S*beta*lambda_2)/delta_1
+u_1=
+(I_1*lambda_5*rho_1 - I_1*lambda_7*rho_1 - I_1*lambda_5*sigma_2 + I_1*lambda_6*sigma_2)/delta_2
+u_2=
+(I_2*lambda_6*rho_2 - I_2*lambda_7*rho_2)/delta_3
+u_v=
+(S*lambda_1 - S*lambda_8)/delta_4
+
+
 Cost Index I_1*theta_3 - S*alpha_2 + I_2*theta_4 + (delta_2*u_1^2)/2 + (delta_3*u_2^2)/2 + (delta_1*u_p^2)/2 + (delta_4*u_v^2)/2
 derivate_sys
 lambda_8*u_v - alpha_2 - lambda_1*(d_1 + u_v - I_a*beta*(u_p - 1)) - I_a*beta*lambda_2*(u_p - 1)
