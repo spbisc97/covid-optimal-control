@@ -1,0 +1,7 @@
+function tableData = onlineData(fname, url)
+if ~exist(dati_covid.csv)
+    websave(fname, url);
+    %opts= detectImportOptions(fname,"VariableNamesLine",1)
+    tableData=readtable(fname);
+end
+

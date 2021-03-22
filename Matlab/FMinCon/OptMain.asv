@@ -8,7 +8,7 @@ warning ('off','all');
 %load alredy optimized data
 load_data_fitting=false;
 load_data_optimization=false;
-save_info=1;
+save_info=0;
 
 fitting=1;
 
@@ -34,7 +34,7 @@ global days
 global u ut
 global Functionals
 global month month_dur
-month_dur=28;
+month_dur=31;
 
 
 tableData = onlineData('dati_covid.csv', 'https://raw.githubusercontent.com/pcm-dpc/COVID-19/master/dati-andamento-nazionale/dpc-covid19-ita-andamento-nazionale.csv');
@@ -53,22 +53,31 @@ b=1180; m=0.09;
 
 
 beta=3.5e-10;   %(60 000 000 * rt )
-eta=0;  %0.005; %~circa 200 giorni ~6 mesi
+eta=0;  %0.01; %~circa 100 giorni ~3 mesi
 tau=0.2; %inverso tempo medio insorgenza sintomi (dopo incubazione non contagiosa)= 5gg
 k=0.3; %inverso tempo medio periodo incubazione (non contagiosa) 3/4 giorni circa
 
-
+%u_va=0;u_1=0.2;u_2=0.15;u_p=0.3;
+% global inputs
+% inputs = [u_va u_1 u_2 u_p];
 %stati iniziali = [S E Ia Q I1 I2 R V];
 
 initstates=[59699728,200000,300000,16000,900,60,400000,10];
+% scale = 1e-8;
+% initstates = zeros(1, 8);
+% initstates(2) = vpa(200*scale);
+% initstates(3) = vpa(4000*scale);
+% initstates(4) = vpa(94*scale);
+% initstates(5) = vpa(101*scale);
+% initstates(6) = vpa(26*scale);
+% initstates(7) = vpa(1*scale);
+% initstates(1) = 1 - initstates(2)-initstates(3)-initstates(4)-initstates(5)-initstates(6)-initstates(7)
 
 
 days=245; %tempo di esecuzione in gg
-weeks=ceil((days)/7); %tempo di esecuzione in settimane(controlli)
-months=ceil((days)/month_dur); %tempo di esecuzione in mesi(parametri)
+weeks=ceil((days)/7);
+months=ceil((days)/month_dur);
 
-
-% inputs = [u_va u_1 u_2 u_p];
 u = zeros(weeks,4);
 ut = zeros(weeks,4);
 for i=1:1:length(u(:,1))
@@ -85,6 +94,11 @@ sigma_1=ones(months,1)*0.09; sigma_2 = ones(months,1)*0.1; %guess tassi complica
 gamma_1=ones(months,1)*0.009;gamma_2=ones(months,1)*0.08;gamma_3=ones(months,1)*0.07; %guarigione spontanea da Ia Q I1
 rho_1=ones(months,1)*0.8;rho_2=ones(months,1)*0.7; % tassi di successo
 
+
+
+%% PLOT BEFORE THE OPTIMIZATION
+%figure
+%Plotter(false)
 
 
 %% Get The Real Data
@@ -166,7 +180,7 @@ opts = optimoptions('fmincon',... %
     'Algorithm','interior-point', ... %default
     'MaxFunctionEvaluations',1e7, ...
     'MaxIterations',1e7, ... %'UseParallel',true,
-    'OptimalityTolerance',1e-7);
+    'OptimalityTolerance',1e-13);
 
 %     options.MaxFunEvals=1e7;
 %     options.TolFun=1e-7;
@@ -176,27 +190,24 @@ opts = optimoptions('fmincon',... %
         fguess= [sigma_1(month), sigma_2(month), gamma_1(month), gamma_2(month), gamma_3(month), p(month), lambda(month), rho_1(month) , rho_2(month)];
         lb= [0.001,0.008 ,0.0001,0.01,0.05, 0.85,0.01,  0.6,0.5];
         ub=[0.1,0.2 ,0.5,0.2,0.3, 0.97,0.9,   0.8,0.7];
-        disp(join(["fitting on month:", month]));
-        fprintf("with control weeks: ");
+        disp(month);
         for elem = (ceil(((month-1)*month_dur+1)/7)):1:(ceil(month*month_dur/7))
             if elem <= weeks
-                fprintf(" %d ",elem);
+                disp(elem);
                 lb=[lb,0.01,0.01,0.01];
                 ub=[ub,0.99,0.99,0.99];
                 fguess=[fguess,u(elem,2:4)];
             end
         end
-        fprintf("\n");
-       
-        %         removed variations contraints
+        %disp(fguess)
+        A_ineq=[];B_ineq=[];
         %         zero_ineq=length(guess);
         %         k_ineq=0.1;
         %         diag=eye((weeks -1)*3);diag(:,end+1:end+3)=0;
         %         diag(:,end+1:end+zero_ineq)=0;
         %         A_ineq=circshift(diag,[0 zero_ineq])-circshift(diag,[0 zero_ineq+3]);
         %         B_ineq=k_ineq*ones((weeks-1)*3,1);
-        
-        A_ineq=[];B_ineq=[];
+
         [optPar,fval]=fmincon(@CostFunFitting,fguess,A_ineq,B_ineq,[],[],lb,ub,[],opts); %options
         initstates=future_initstates;
     end

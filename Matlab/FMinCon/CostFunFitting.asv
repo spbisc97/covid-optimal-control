@@ -10,11 +10,11 @@ global u month month_dur ut
 global Functionals future_initstates
 
 
-init_day=(month-1)*month_dur+1;
+init_day=(month-1)*month_dur +1;
 if (month)*month_dur > days
     final_day=days ;
 else
-    final_day=(month)*month_dur;
+    final_day=(month)*month_dur ;
 end
 
 
@@ -40,25 +40,19 @@ for elem = 1:1:(length(parameters)-9)/3
 end
 
 
-if (init_day==1)
-    tspan =(init_day:1:final_day);
-else
-    tspan =(init_day-1:1:final_day);
-end
+
+
+tspan =(init_day:1:final_day);
+
 opts = odeset('MaxStep',1);
 init=initstates;
 [t,x]=ode45(@CovidSimulator,tspan,init,opts);
-%StateVars = ['S', 'E', 'Ia', 'Q' ,'I1', 'I2' ,'R', 'V']; %S_sim=x(:,1);
+%StateVars = ['S', 'E', 'Ia', 'Q' ,'I1', 'I2' ,'R', 'V'];
+%S_sim=x(:,1);
+Q_sim=x(2:end,4);
+I1_sim=x(2:end,5);
+I2_sim=x(2:end,6);
 
-if (init_day==1)
-    Q_sim=x(:,4);
-    I1_sim=x(:,5);
-    I2_sim=x(:,6);
-else
-    Q_sim=x(2:end,4);
-    I1_sim=x(2:end,5);
-    I2_sim=x(2:end,6);
-end
 
 if (length(Q_sim) ~= length(Q_real(init_day:final_day))) || ...
         (length(I1_sim) ~= length(I1_real(init_day:final_day))) || ...
