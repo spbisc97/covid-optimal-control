@@ -71,8 +71,8 @@ future_initstates=[x(end,1),x(end,2),x(end,3),x(end,4),x(end,5),x(end,6),x(end,7
 %Q~10^5   I1 ~ 10^4 i1 ~10^3
 
 J_fitting = (1)*(sum(((Q_real(init_day:final_day)-Q_sim)).^2)/days)+...
-    (8e1)*(sum(((I1_real(init_day:final_day)-I1_sim)).^2)/days)+...
-    (3e2)*(sum(((I2_real(init_day:final_day)-I2_sim)).^2)/days);
+    (2e1)*(sum(((I1_real(init_day:final_day)-I1_sim)).^2)/days)+...
+    (8e1)*(sum(((I2_real(init_day:final_day)-I2_sim)).^2)/days);
 
 
 

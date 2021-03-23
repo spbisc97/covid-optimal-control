@@ -12,10 +12,10 @@ save_info=1;
 
 fitting=1;
 
-optimization1=0;
-optimization2=0;
-optimization3=0;
-optimization4=0;
+optimization1=1;
+optimization2=1;
+optimization3=1;
+optimization4=1;
 
 optu1=0;optu2=0;optu3=0;optu4=0;
 
@@ -73,9 +73,9 @@ u = zeros(weeks,4);
 ut = zeros(weeks,4);
 for i=1:1:length(u(:,1))
     u(i,1) = 0;
-    u(i,2) = 0.5+i*0.0001;
-    u(i,3) = 0.6+i*0.0001;
-    u(i,4) = 0.4+i*0.0001;
+    u(i,2) = 0.5;
+    u(i,3) = 0.6;
+    u(i,4) = 0.4;
 end
 
 
@@ -162,32 +162,32 @@ initstates=[59699728,200000,300000,Q_real(1),I1_real(1),I2_real(1),200000,10];
 
 if fitting
     
-opts = optimoptions('fmincon',... %
-    'Algorithm','interior-point', ... %default
-    'MaxFunctionEvaluations',1e7, ...
-    'MaxIterations',1e7, ... %'UseParallel',true,
-    'OptimalityTolerance',1e-7);
-
-%     options.MaxFunEvals=1e7;
-%     options.TolFun=1e-7;
-%     options.MaxIter=1e7;
+    opts = optimoptions('fmincon',... %
+        'Algorithm','interior-point', ... %default
+        'MaxFunctionEvaluations',1e7, ...
+        'MaxIterations',1e7, ... %'UseParallel',true,
+        'OptimalityTolerance',1e-4);
+    
+    %     options.MaxFunEvals=1e7;
+    %     options.TolFun=1e-7;
+    %     options.MaxIter=1e7;
     for month = 1:months
         
-        fguess= [sigma_1(month), sigma_2(month), gamma_1(month), gamma_2(month), gamma_3(month), p(month), lambda(month), rho_1(month) , rho_2(month)];
-        lb= [0.001,0.008 ,0.0001,0.01,0.05, 0.85,0.01,  0.6,0.5];
-        ub=[0.1,0.2 ,0.5,0.2,0.3, 0.97,0.9,   0.8,0.7];
+        fguess=[sigma_1(month), sigma_2(month), gamma_1(month), gamma_2(month), gamma_3(month), p(month), lambda(month), rho_1(month) , rho_2(month)];
+        lb= [0.0001,0.001 ,0.00001,0.0001,0.0001, 0.86,0.001,  0.001,0.001];
+        ub=[0.1,0.2 ,0.5,0.2,0.4, 0.96,0.9,   0.8,0.9];
         disp(join(["fitting on month:", month]));
         fprintf("with control weeks: ");
         for elem = (ceil(((month-1)*month_dur+1)/7)):1:(ceil(month*month_dur/7))
             if elem <= weeks
                 fprintf(" %d ",elem);
-                lb=[lb,0.01,0.01,0.01];
-                ub=[ub,0.99,0.99,0.99];
+                lb=[lb,0.55,0.45,0.35];
+                ub=[ub,0.8,0.7,0.8];
                 fguess=[fguess,u(elem,2:4)];
             end
         end
         fprintf("\n");
-       
+        
         %         removed variations contraints
         %         zero_ineq=length(guess);
         %         k_ineq=0.1;
@@ -201,10 +201,19 @@ opts = optimoptions('fmincon',... %
         initstates=future_initstates;
     end
     
-    disp('sigma_1, sigma_2, gamma_1, gamma_2, gamma_3, p, rho_1, rho_2, lambda, k, u');
     
     ufit=u;
     
+    disp('month,  sigma_1  ,   sigma_2   ,    gamma_1   ,    gamma_2   ,   gamma_3    ,     p    ,    lambda  ,  rho_1   ,  rho_2   ');
+    fprintf("   ")
+    for elem=1:1:9
+        fprintf( "%.5f-%.3f |",lb(elem),ub(elem));
+    end
+    fprintf("\n")
+    for month=1:1:months
+        
+        fprintf(" %2d:   %.4f    |    %.4f    |    %.4f    |    %.4f    |    %.4f    |    %.4f    |    %.4f    |    %.4f    |    %.4f \n",month ,sigma_1(month), sigma_2(month), gamma_1(month), gamma_2(month), gamma_3(month), p(month), lambda(month), rho_1(month) , rho_2(month))
+    end
 end
 
 
@@ -248,6 +257,13 @@ disp("CONTROL OPTIMIZATION")
 if exist('OptControl.mat','file') && load_data_optimization
     load('OptControl.mat')
 end
+
+
+ options = optimoptions('fmincon',... %
+        'Algorithm','interior-point', ... %default
+        'MaxFunctionEvaluations',1e6, ...
+        'MaxIterations',1e6, ... %'UseParallel',true,
+        'OptimalityTolerance',1e-4);
 
 %tranform in array
 lb=zeros(weeks*4,1);

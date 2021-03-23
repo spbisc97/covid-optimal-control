@@ -11,12 +11,7 @@ global rho_1 rho_2 month_dur
 
 
 mvd=0.01; %max vaccines per day ~ 600 000
-%global inputs
 
-%     u_va = inputs(1);
-%     u_1 = inputs(2);
-%     u_2 = inputs(3);
-%     u_p = inputs(4);
 week=ceil(t/7);
 month=ceil(t/month_dur);
 u_va=u(week,1);u_1=u(week,2);u_2=u(week,3);u_p=u(week,4);
