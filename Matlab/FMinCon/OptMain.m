@@ -6,16 +6,16 @@ clc
 warning ('off','all');
 
 %load alredy optimized data
-load_data_fitting=false;
-load_data_optimization=false;
-save_info=1;
+load_data_fitting=0; %true/false 1/0
+load_data_optimization=0;
+save_info=0;
 
-fitting=1;
+fitting=0;
 
-optimization1=1;
-optimization2=1;
-optimization3=1;
-optimization4=1;
+optimization1=0;
+optimization2=0;
+optimization3=0;
+optimization4=0;
 
 optu1=0;optu2=0;optu3=0;optu4=0;
 
@@ -364,7 +364,7 @@ end
 %% PLOT AFTER THE OPTIMIZATION
 if optu1
     disp('PLOT COMPARISON AFTER OPTIMIZATION')
-    MixedPlotter(ufit,optu1,optu2,optu3,optu4);
+    [Icomp,ContrComp]=MixedPlotter(ufit,optu1,optu2,optu3,optu4);
 end
 
 %% Save some info

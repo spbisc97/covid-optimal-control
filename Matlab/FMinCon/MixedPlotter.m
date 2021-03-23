@@ -63,7 +63,7 @@ title('Hospedalized IC');
 
 set(gcf,'Position', get(0, 'ScreenSize')./2);
 
-
+Icomp=gcf;
 %% Control Strategies Comparison
 
 fig2=figure('Name','Control Strategies Comparison');
@@ -130,5 +130,6 @@ legend('Location','bestoutside');
 title('Preventive Control');
 set(gcf,'Position', get(0, 'ScreenSize')./[1 1 2 1]);
 
+ContrComp=gcf;
 end
 
