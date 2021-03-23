@@ -364,7 +364,7 @@ end
 %% PLOT AFTER THE OPTIMIZATION
 if optu1
     disp('PLOT COMPARISON AFTER OPTIMIZATION')
-    [Icomp,ContrComp]=MixedPlotter(ufit,optu1,optu2,optu3,optu4);
+    MixedPlotter(ufit,optu1,optu2,optu3,optu4);
 end
 
 %% Save some info

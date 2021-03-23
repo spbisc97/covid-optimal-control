@@ -2,25 +2,27 @@ function [Icomp,ContrComp] = MixedPlotter(Fit,Opt1,Opt2,Opt3,Opt4)
 global initstates
 global days
 global u
+opts = odeset('MaxStep',1);
+
 
 u=Fit;
-[t,F]=ode45(@CovidSimulator,[1 days],initstates);
+[t,F]=ode45(@CovidSimulator,1:1:days,initstates,opts);
 F(:,end+1)=t;
 
 u=Opt1;
-[t,O1]=ode45(@CovidSimulator,[1 days],initstates);
+[t,O1]=ode45(@CovidSimulator,1:1:days,initstates,opts);
 O1(:,end+1)=t;
 
 u=Opt2;
-[t,O2]=ode45(@CovidSimulator,[1 days],initstates);
+[t,O2]=ode45(@CovidSimulator,1:1:days,initstates,opts);
 O2(:,end+1)=t;
 
 u=Opt3;
-[t,O3]=ode45(@CovidSimulator,[1 days],initstates);
+[t,O3]=ode45(@CovidSimulator,1:1:days,initstates,opts);
 O3(:,end+1)=t;
 
 u=Opt4;
-[t,O4]=ode45(@CovidSimulator,[1 days],initstates);
+[t,O4]=ode45(@CovidSimulator,1:1:days,initstates,opts);
 O4(:,end+1)=t;
 
 
