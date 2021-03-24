@@ -57,6 +57,7 @@ plot(O3(:,end),O3(:,6),'Color','#7E2F8E','LineWidth',1.5);
 hold on
 plot(O4(:,end),O4(:,6),'Color','#77AC30','LineWidth',1.5);
 hold on
+ylim([0 2e4])
 legend('Fit','Opt1','Opt2','Opt3','Opt4');
 legend('Location','bestoutside');
 title('Hospedalized IC');

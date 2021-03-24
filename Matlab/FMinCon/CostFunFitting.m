@@ -6,7 +6,7 @@ global  sigma_1 sigma_2 %beta
 global gamma_1 gamma_2 gamma_3 p
 global lambda rho_1 rho_2
 global Q_real I1_real I2_real OptFunVal
-global u month month_dur ut
+global u month month_dur
 global Functionals future_initstates
 
 
@@ -35,7 +35,6 @@ for elem = 1:1:(length(parameters)-9)/3
     week=(ceil(((month-1)*month_dur+1)/7))+elem-1;
     if week <= weeks
         u(week,2:4)=parameters((elem-1)*3+10:(elem-1)*3+12);
-        ut(week,2:4)=parameters((elem-1)*3+10:(elem-1)*3+12);
     end
 end
 

@@ -1,6 +1,6 @@
 close all
 clear
-clc
+% clc
 %% Setup and Parameters
 %suppress warning for too near constraints
 warning ('off','all');
@@ -10,7 +10,7 @@ load_data_fitting=0; %true/false 1/0
 load_data_optimization=0;
 save_info=0;
 
-fitting=0;
+fitting=1;
 
 optimization1=0;
 optimization2=0;
@@ -31,10 +31,13 @@ global rho_1 rho_2
 global OptFunVal
 global initstates future_initstates
 global days
-global u ut
+global u 
 global Functionals
 global month month_dur
+
 month_dur=28;
+
+days=252; %tempo di esecuzione in gg
 
 
 tableData = onlineData('dati_covid.csv', 'https://raw.githubusercontent.com/pcm-dpc/COVID-19/master/dati-andamento-nazionale/dpc-covid19-ita-andamento-nazionale.csv');
@@ -52,30 +55,31 @@ b=1180; m=0.09;
 
 
 
-beta=3.5e-10;   %(60 000 000 * rt )
-eta=0;  %0.005; %~circa 200 giorni ~6 mesi
+beta=6e-10;   %(rt/(6e7*variazione media positivi( media=1.98e+03 ))
+eta=0;  %0.005; %~circa 240 giorni ~8 mesi
 tau=0.2; %inverso tempo medio insorgenza sintomi (dopo incubazione non contagiosa)= 5gg
 k=0.3; %inverso tempo medio periodo incubazione (non contagiosa) 3/4 giorni circa
 
 
 %stati iniziali = [S E Ia Q I1 I2 R V];
 
-initstates=[59699728,200000,300000,16000,900,60,400000,10];
-
-
-days=245; %tempo di esecuzione in gg
 weeks=ceil((days)/7); %tempo di esecuzione in settimane(controlli)
 months=ceil((days)/month_dur); %tempo di esecuzione in mesi(parametri)
 
 
 % inputs = [u_va u_1 u_2 u_p];
 u = zeros(weeks,4);
-ut = zeros(weeks,4);
+
 for i=1:1:length(u(:,1))
     u(i,1) = 0;
     u(i,2) = 0.5;
     u(i,3) = 0.6;
     u(i,4) = 0.4;
+  if ( 110<(i-0.5)*7 )<160
+     u(i,4) = 0.4; 
+  end
+  
+  
 end
 
 
@@ -158,7 +162,7 @@ if exist('OptParameters.mat','file') && load_data_fitting
     u=ufit;
 end
 
-initstates=[59699728,200000,300000,Q_real(1),I1_real(1),I2_real(1),200000,10];
+initstates=[59699728,40000,60000,Q_real(1),I1_real(1),I2_real(1),50000,10];
 
 if fitting
     
@@ -181,8 +185,8 @@ if fitting
         for elem = (ceil(((month-1)*month_dur+1)/7)):1:(ceil(month*month_dur/7))
             if elem <= weeks
                 fprintf(" %d ",elem);
-                lb=[lb,0.55,0.45,0.35];
-                ub=[ub,0.8,0.7,0.8];
+                lb=[lb,0.55,0.45,0.25];% u1  u2  up
+                ub=[ub,0.8,0.7,0.9];% u1  u2  up
                 fguess=[fguess,u(elem,2:4)];
             end
         end
@@ -204,22 +208,25 @@ if fitting
     
     ufit=u;
     
-    disp('month,  sigma_1  ,   sigma_2   ,    gamma_1   ,    gamma_2   ,   gamma_3    ,     p    ,    lambda  ,  rho_1   ,  rho_2   ');
-    fprintf("   ")
+    fprintf('month,   sigma_1  ,   sigma_2    ,    gamma_1   ,   gamma_2    ,   gamma_3    ,      p      ,     lambda   ,     rho_1     ,    rho_2   \n');
+    fprintf("    ")
     for elem=1:1:9
-        fprintf( "%.5f-%.3f |",lb(elem),ub(elem));
+        fprintf( "%.5f-%.4f|",lb(elem),ub(elem));
     end
-    fprintf("\n")
+    fprintf("\n");
     for month=1:1:months
-        
-        fprintf(" %2d:   %.4f    |    %.4f    |    %.4f    |    %.4f    |    %.4f    |    %.4f    |    %.4f    |    %.4f    |    %.4f \n",month ,sigma_1(month), sigma_2(month), gamma_1(month), gamma_2(month), gamma_3(month), p(month), lambda(month), rho_1(month) , rho_2(month))
+        fprintf(2, 'day:%d \n',(month-1)*month_dur+1)
+        fprintf("  %2d:  %.5f    |   %.5f    |   %.5f    |   %.5f    |   %.5f    |   %.5f    |   %.5f    |   %.5f    |   %.5f  \n" ,month ,sigma_1(month), sigma_2(month), gamma_1(month), gamma_2(month), gamma_3(month), p(month), lambda(month), rho_1(month) , rho_2(month))
     end
+    fprintf(2,"day:%d \n",days);
+    fprintf("\n mean: %.5f    |   %.5f    |   %.5f    |   %.5f    |   %.5f    |   %.5f    |   %.5f    |   %.5f    |   %.5f \n",mean(sigma_1), mean(sigma_2), mean(gamma_1), mean(gamma_2), mean(gamma_3), mean(p), mean(lambda), mean(rho_1) , mean(rho_2))
+    
 end
 
 
 %% PLOT AFTER THE FITTING OPTIMIZATION
 disp('PLOT AFTER THE FITTING')
-initstates=[59699728,200000,300000,Q_real(1),I1_real(1),I2_real(1),200000,10];
+initstates=[59699728,40000,60000,Q_real(1),I1_real(1),I2_real(1),50000,10];
 
 [t,x]=ode45(@CovidSimulator,[1 days],initstates);
 
@@ -259,23 +266,21 @@ if exist('OptControl.mat','file') && load_data_optimization
 end
 
 
- options = optimoptions('fmincon',... %
-        'Algorithm','interior-point', ... %default
-        'MaxFunctionEvaluations',1e6, ...
-        'MaxIterations',1e6, ... %'UseParallel',true,
-        'OptimalityTolerance',1e-4);
+options = optimoptions('fmincon',... %
+    'Algorithm','interior-point', ... %default
+    'MaxFunctionEvaluations',1e6, ...
+    'MaxIterations',1e6, ... %'UseParallel',true,
+    'OptimalityTolerance',1e-4);
 
 %tranform in array
-lb=zeros(weeks*4,1);
-ub=zeros(weeks*4,1); %upperbound in contr
-ub(:)=0.999;
+lb=ones(weeks*4,1)*1e-13;
+ub=ones(weeks*4,1)*0.999; %upperbound in contr %ub(:)=0.999;
 ub(1:weeks)=1e-10;
 
 
 
 guess=zeros(weeks*4,1);%guess iniziali inputs
-
-guess(1:weeks)=0.0;
+guess(1:weeks)=1e-10;
 guess(weeks+1:weeks*2)=0.3;
 guess(weeks*2+1:weeks*3)=0.1;
 guess(weeks*2+1:weeks*3)=1;
@@ -371,6 +376,7 @@ end
 %for later
 
 if save_info
+    
     save ('OptParameters', 'sigma_1', 'sigma_2', 'gamma_1',...
         'gamma_2', 'gamma_3', 'p', 'rho_1', 'rho_2', ...
         'lambda', 'k','ufit');
