@@ -10,7 +10,7 @@ load_data_fitting=0; %true/false 1/0
 load_data_optimization=0;
 save_info=0;
 
-fitting=0;
+fitting=1;
 
 optimization1=0;
 optimization2=0;
@@ -202,18 +202,21 @@ if fitting
     end
     
     
-    ufit=u;
+    ufit=u;   
     
-    disp('month,  sigma_1  ,   sigma_2   ,    gamma_1   ,    gamma_2   ,   gamma_3    ,     p    ,    lambda  ,  rho_1   ,  rho_2   ');
-    fprintf("   ")
+    fprintf('month,   sigma_1  ,   sigma_2    ,    gamma_1   ,   gamma_2    ,   gamma_3    ,      p      ,     lambda   ,     rho_1     ,    rho_2   \n');
+    fprintf("    ")
     for elem=1:1:9
-        fprintf( "%.5f-%.3f |",lb(elem),ub(elem));
+        fprintf( "%.5f-%.4f|",lb(elem),ub(elem));
     end
-    fprintf("\n")
+    fprintf("\n");
     for month=1:1:months
-        
-        fprintf(" %2d:   %.4f    |    %.4f    |    %.4f    |    %.4f    |    %.4f    |    %.4f    |    %.4f    |    %.4f    |    %.4f \n",month ,sigma_1(month), sigma_2(month), gamma_1(month), gamma_2(month), gamma_3(month), p(month), lambda(month), rho_1(month) , rho_2(month))
+        fprintf(2, 'day:%d \n',(month-1)*month_dur+1)
+        fprintf("  %2d:  %.5f    |   %.5f    |   %.5f    |   %.5f    |   %.5f    |   %.5f    |   %.5f    |   %.5f    |   %.5f  \n" ,month ,sigma_1(month), sigma_2(month), gamma_1(month), gamma_2(month), gamma_3(month), p(month), lambda(month), rho_1(month) , rho_2(month))
     end
+    fprintf(2,"day:%d \n",days);
+    fprintf("\n mean: %.5f    |   %.5f    |   %.5f    |   %.5f    |   %.5f    |   %.5f    |   %.5f    |   %.5f    |   %.5f \n",mean(sigma_1), mean(sigma_2), mean(gamma_1), mean(gamma_2), mean(gamma_3), mean(p), mean(lambda), mean(rho_1) , mean(rho_2))
+    
 end
 
 
