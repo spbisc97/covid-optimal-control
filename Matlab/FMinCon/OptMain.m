@@ -6,11 +6,11 @@ clc
 warning ('off','all');
 
 %load alredy optimized data
-load_data_fitting=0; %true/false 1/0
-load_data_optimization=0;
+load_data_fitting=1; %true/false 1/0
+load_data_optimization=1;
 save_info=0;
 
-fitting=1;
+fitting=0;
 
 optimization1=0;
 optimization2=0;
