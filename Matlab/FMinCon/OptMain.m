@@ -31,20 +31,20 @@ global rho_1 rho_2
 global OptFunVal
 global initstates future_initstates
 global days
-global u 
+global u
 global Functionals
 global month month_dur
 
 month_dur=28;
 
-days=252; %tempo di esecuzione in gg
+days=140; %tempo di esecuzione in gg
 
 
 tableData = onlineData('dati_covid.csv', 'https://raw.githubusercontent.com/pcm-dpc/COVID-19/master/dati-andamento-nazionale/dpc-covid19-ita-andamento-nazionale.csv');
 %get data from "Presidenza del Consiglio dei Ministri - Dipartimento della Protezione Civile"
 
 %global u_va u_1 u_2 u_p
-OptFunVal=zeros(1,6);
+OptFunVal=zeros(1,7);
 Functionals=["" "" "" "" ""];
 Population=60000000;
 Deaths2019=647000;
@@ -53,9 +53,10 @@ d=(Deaths2019/Population)/365;
 d1=d;d2=d;d3=d;d4=d;d5=d;d6=d;d7=d;d8=0;
 b=1180; m=0.09;
 
+baseStates=[59699728,90000,150000,0,0,0,50000,10]; %(elem from 4 to 6 will be acquired with data)
 
 
-beta=6e-10;   %(rt/(6e7*variazione media positivi( media=1.98e+03 ))
+beta=3.5e-10;   %(rt/(6e7*variazione media positivi( media=1.98e+03 ))
 eta=0;  %0.005; %~circa 240 giorni ~8 mesi
 tau=0.2; %inverso tempo medio insorgenza sintomi (dopo incubazione non contagiosa)= 5gg
 k=0.3; %inverso tempo medio periodo incubazione (non contagiosa) 3/4 giorni circa
@@ -75,11 +76,11 @@ for i=1:1:length(u(:,1))
     u(i,2) = 0.5;
     u(i,3) = 0.6;
     u(i,4) = 0.4;
-  if ( 110<(i-0.5)*7 )<160
-     u(i,4) = 0.4; 
-  end
-  
-  
+    if ( 110<(i-0.5)*7 )<160
+        u(i,4) = 0.4;
+    end
+    
+    
 end
 
 
@@ -110,6 +111,10 @@ if size(Q_real)< days
     disp("Not enough real data!",size(Q_real),'<',days)
     quit(1)
 end
+baseStates(4)=Q_real(1);
+baseStates(5)=I1_real(1);
+baseStates(6)=I2_real(1);
+
 
 %% Plot Real Data
 disp("Plot Real Data")
@@ -162,8 +167,7 @@ if exist('OptParameters.mat','file') && load_data_fitting
     u=ufit;
 end
 
-initstates=[59699728,40000,60000,Q_real(1),I1_real(1),I2_real(1),50000,10];
-
+initstates=baseStates;
 if fitting
     
     opts = optimoptions('fmincon',... %
@@ -178,15 +182,19 @@ if fitting
     for month = 1:months
         
         fguess=[sigma_1(month), sigma_2(month), gamma_1(month), gamma_2(month), gamma_3(month), p(month), lambda(month), rho_1(month) , rho_2(month)];
-        lb= [0.0001,0.001 ,0.00001,0.0001,0.0001, 0.86,0.001,  0.001,0.001];
-        ub=[0.1,0.2 ,0.5,0.2,0.4, 0.96,0.9,   0.8,0.9];
+        %lb= [0.0001,0.001 ,0.0002,0.0001,0.0001, 0.86,0.001,  0.001,0.001];
+        lb=ones(1,9)*0.00001;
+        %ub=[0.1,0.2 ,0.5,0.2,0.4, 0.96,0.9,   0.8,0.9];
+        ub=ones(1,9);
         disp(join(["fitting on month:", month]));
         fprintf("with control weeks: ");
         for elem = (ceil(((month-1)*month_dur+1)/7)):1:(ceil(month*month_dur/7))
             if elem <= weeks
                 fprintf(" %d ",elem);
-                lb=[lb,0.55,0.45,0.25];% u1  u2  up
-                ub=[ub,0.8,0.7,0.9];% u1  u2  up
+                %lb=[lb,0.55,0.45,0.15];% u1  u2  up
+                lb=[lb,0.001,0.001,0.001];
+                %ub=[ub,0.8,0.7,0.9];% u1  u2  up
+                ub=[ub,1,1,1];
                 fguess=[fguess,u(elem,2:4)];
             end
         end
@@ -207,7 +215,7 @@ if fitting
     
     
     ufit=u;
-    
+    fprintf(2,"LocalFitting \n");
     fprintf('month,   sigma_1  ,   sigma_2    ,    gamma_1   ,   gamma_2    ,   gamma_3    ,      p      ,     lambda   ,     rho_1     ,    rho_2   \n');
     fprintf("    ")
     for elem=1:1:9
@@ -220,15 +228,12 @@ if fitting
     end
     fprintf(2,"day:%d \n",days);
     fprintf("\n mean: %.5f    |   %.5f    |   %.5f    |   %.5f    |   %.5f    |   %.5f    |   %.5f    |   %.5f    |   %.5f \n",mean(sigma_1), mean(sigma_2), mean(gamma_1), mean(gamma_2), mean(gamma_3), mean(p), mean(lambda), mean(rho_1) , mean(rho_2))
-    
+    disp(u)
 end
-
-
-%% PLOT AFTER THE FITTING OPTIMIZATION
+%% Plot
 disp('PLOT AFTER THE FITTING')
-initstates=[59699728,40000,60000,Q_real(1),I1_real(1),I2_real(1),50000,10];
-
-[t,x]=ode45(@CovidSimulator,[1 days],initstates);
+initstates=baseStates;
+[t,x]=ode45(@CovidSimulator,[1 days],initstates,odeset('MaxStep',1));
 
 nexttile(1);
 plot(t,x(:,1));
@@ -249,6 +254,106 @@ legend('Location','bestoutside');
 nexttile(4);
 plot(t,x(:,5),'b','DisplayName','I1');
 plot(t,x(:,6),'r','DisplayName','I2');
+title('Infetti ospedalizzati ed interapia intensiva');
+legend('Location','bestoutside');
+set(gcf,'Name','Fitting');
+set(gcf, 'Position',   get(0, 'ScreenSize')./[1 1 2 1])
+fittingPlot=gcf;
+
+pause(2)
+%% Global Fitting after initial guess
+
+
+initstates=baseStates;
+
+if fitting
+    disp('Start Global Fitting')
+      opts = optimoptions('fmincon',... %
+        'Algorithm','interior-point', ... %default
+        'MaxFunctionEvaluations',1e5, ...
+        'MaxIterations',1e5, ... %'UseParallel',true,
+        'OptimalityTolerance',1e-4);
+    
+    guess=[];
+    lb=[];
+    ub=[];
+    for month = 1:months
+        guess= [guess,sigma_1(month), sigma_2(month), gamma_1(month), gamma_2(month), gamma_3(month), p(month), lambda(month), rho_1(month) , rho_2(month)];
+        lb=[lb,ones(1,9)*0.00001];
+        ub=[ub,ones(1,9)];
+        %lb=[ub,0.0001,0.001 ,0.0002,0.0001,0.0001, 0.86,0.001,  0.001,0.001];
+        %ub=[lb,0.1,0.2 ,0.5,0.2,0.4, 0.96,0.9,   0.8,0.9];
+    end
+
+    for elem = 1:1:weeks
+        len=length(lb);
+        %lb=[lb,0.1,0.1,0.1];
+        lb=[lb,0.001,0.001,0.001];
+        
+        %ub=[ub,0.9,0.9,0.9];
+        ub=[ub,1,1,1];
+        guess=[guess,u(elem,2:4)];
+        
+    end
+    
+    
+    %     zero_ineq=length(guess);
+    %     k_ineq=0.1;
+    %         diag=eye((weeks -1)*3);diag(:,end+1:end+3)=0;
+    %         diag(:,end+1:end+zero_ineq)=0;
+    %         A_ineq=circshift(diag,[0 zero_ineq])-circshift(diag,[0 zero_ineq+3]);
+    %         B_ineq=k_ineq*ones((weeks-1)*3,1);
+    
+    A_ineq=[];B_ineq=[];
+    
+    
+    [optPar,fval]=fmincon(@CostFunFittingGlobal,guess,A_ineq,B_ineq,[],[],lb,ub,[],opts);
+    ufit=u;
+    fprintf(2,"Global fitting\n");
+    
+    fprintf('month,   sigma_1  ,   sigma_2    ,    gamma_1   ,   gamma_2    ,   gamma_3    ,      p      ,     lambda   ,     rho_1     ,    rho_2   \n');
+    fprintf("    ")
+    for elem=1:1:9
+        fprintf( "%.5f-%.4f|",lb(elem),ub(elem));
+    end
+    fprintf("\n");
+    for month=1:1:months
+        fprintf(2, 'day:%d \n',(month-1)*month_dur+1)
+        fprintf("  %2d:  %.5f    |   %.5f    |   %.5f    |   %.5f    |   %.5f    |   %.5f    |   %.5f    |   %.5f    |   %.5f  \n" ,month ,sigma_1(month), sigma_2(month), gamma_1(month), gamma_2(month), gamma_3(month), p(month), lambda(month), rho_1(month) , rho_2(month))
+    end
+    fprintf(2,"day:%d \n",days);
+    fprintf("\n mean: %.5f    |   %.5f    |   %.5f    |   %.5f    |   %.5f    |   %.5f    |   %.5f    |   %.5f    |   %.5f \n",mean(sigma_1), mean(sigma_2), mean(gamma_1), mean(gamma_2), mean(gamma_3), mean(p), mean(lambda), mean(rho_1) , mean(rho_2))
+    
+    disp(u)
+end
+
+
+%% PLOT AFTER THE FITTING OPTIMIZATION
+disp('PLOT AFTER THE FITTING')
+initstates=baseStates;
+
+
+[t,x]=ode45(@CovidSimulator,[1 days],initstates,odeset('MaxStep',1));
+
+nexttile(1);
+plot(t,x(:,1));
+ylim([5.5e7 6.1e7])
+
+legend(nexttile(1),'S');
+title('Persone non ancora infette');
+nexttile(2);
+plot(t,[x(:,2) x(:,3) x(:,7) x(:,8)])
+ylim([0 5e6])
+
+legend(nexttile(2), 'E', 'Ia','R', 'V', 'Location', 'bestoutside');
+title('Esposti, Infetti asintomatici, guariti, vacc.')
+nexttile(3);
+title('Quarantena');
+plot(t,x(:,4),'k--','DisplayName','Q');
+legend('Location','bestoutside');
+nexttile(4);
+plot(t,x(:,5),'b--','DisplayName','I1');
+plot(t,x(:,6),'r--','DisplayName','I2');
 title('Infetti ospedalizzati ed interapia intensiva');
 legend('Location','bestoutside');
 set(gcf,'Name','Fitting');

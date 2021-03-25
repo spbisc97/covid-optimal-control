@@ -7,7 +7,7 @@ warning ('off','all');
 
 %load alredy optimized data
 load_data_fitting=false;
-load_data_optimization=true;
+load_data_optimization=false;
 
 
 fitting=1;
@@ -188,8 +188,6 @@ if fitting
     
     ufit=u;
     disp(optPar);
-end
-
 
 %% PLOT AFTER THE FITTING OPTIMIZATION
 disp('PLOT AFTER THE FITTING')
