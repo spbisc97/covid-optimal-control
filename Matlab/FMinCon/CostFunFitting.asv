@@ -87,13 +87,12 @@ if Functionals(1) ~= "(1)*(sum(((Q_real(init_day:final_day)-Q_sim)).^2)/days)+(2
     Functionals(1) = "(1)*(sum(((Q_real(init_day:final_day)-Q_sim)).^2)/days)+(2e1)*(sum(((I1_real(init_day:final_day)-I1_sim)).^2)/days)+(8e1)*(sum(((I2_real(init_day:final_day)-I2_sim)).^2)/days)";
 end
 
-%set where last execution finishes
+%set where last executo
 len = length(OptFunVal(:,1));
 OptFunVal(len+1,6)=month;
 if OptFunVal(len,6)==month
     OptFunVal(len,6)=0;
 end
-%get execution value
 OptFunVal(len+1,1)=J_fitting;
 
 end

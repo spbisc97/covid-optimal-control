@@ -1,4 +1,6 @@
 function [Icomp,ContrComp] = MixedPlotter(Fit,Opt1,Opt2,Opt3,Opt4)
+%compare strategies
+
 global initstates
 global days
 global u

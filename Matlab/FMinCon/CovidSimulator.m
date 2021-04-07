@@ -12,11 +12,13 @@ global rho_1 rho_2 month_dur
 
 mvd=0.01; %max vaccines per day ~ 600 000
 
+%number of the week and number of the month
 week=ceil(t/7);
 month=ceil(t/month_dur);
+%get controls 
 u_va=u(week,1);u_1=u(week,2);u_2=u(week,3);u_p=u(week,4);
 
-
+%states of the system
 S = x(1);
 E = x(2);
 Ia = x(3);
@@ -25,9 +27,12 @@ I1 = x(5);
 I2 = x(6);
 R = x(7);
 V= x(8);
-%uscita del sistema
+
+%output
 xdot=zeros(8,1);
 
+
+%system evolution
 xdot(1)=(b - (+d1 + beta  * Ia * (1 - u_p) + mvd * u_va) * S + eta * R );
 xdot(2)=(beta * Ia * (1 - u_p) * S - (d2 + k) * E);
 xdot(3)=(-(d3 + lambda(month) * tau + gamma_1(month)) * Ia + k * E);
