@@ -94,10 +94,17 @@ rho_1=ones(months,1)*0.8;rho_2=ones(months,1)*0.7; % care success rate
 
 %data starts from june -> move to S for better realistic data
 %get index of the real data value from the date '2020-06-23' startSimDay
-startSimDay='2020-06-23';
-initday=find(ismember(cellfun(@(x) x(1:10),tableData.data,'UniformOutput',false),startSimDay));
-tableData(1:initday,:)=[];
-
+if verLessThan('matlab','9.10')
+    startSimDay='2020-06-23';
+    initday=find(ismember(cellfun(@(x) x(1:10),tableData.data,'UniformOutput',false),startSimDay));
+    tableData(1:initday,:)=[];
+else
+    startSimDay=datetime('2020-06-23');
+    initday=find(ismember(tableData.data.Day,startSimDay.Day) & ...
+        ismember(tableData.data.Month,startSimDay.Month) & ...
+        ismember(tableData.data.Year,startSimDay.Year));
+    tableData(1:initday,:)=[];
+end
 
 %get real data from table and smooth it for less spikes
 global Q_real I1_real I2_real
@@ -144,11 +151,17 @@ hold on;
 pause(2)
 
 %% Set Vaccine control
-
-%set vaccine 10 days after initday '2021-01-06'
-fVD=find(...
-    ismember(cellfun(@(x) x(1:10),tableData.data,'UniformOutput',false)...
-    ,'2021-01-06'));  %first Vaccine Day 27 december+ 10 days
+%first Vaccine Day 27 december+ 10 days
+%set vaccine 10 days after initday '2021-01-06' 
+if verLessThan('matlab','9.10')
+    startSimDay='2021-01-06';
+    fVD=find(ismember(cellfun(@(x) x(1:10),tableData.data,'UniformOutput',false),startSimDay));
+else
+    startSimDay=datetime('2021-01-06');
+    fVD=find(ismember(tableData.data.Day,startSimDay.Day) & ...
+        ismember(tableData.data.Month,startSimDay.Month) & ...
+        ismember(tableData.data.Year,startSimDay.Year));
+end
 if days>fVD
     u(ceil(fVD/7):weeks,1)=0.02;% ~ 12 thousand inoculation per day
     if days>(fVD+30)
@@ -306,9 +319,15 @@ guess(weeks*2+1:weeks*3)=1;
 
 
 %get vaccine day index
-fVD=find(...
-    ismember(cellfun(@(x) x(1:10),tableData.data,'UniformOutput',false)...
-    ,'2020-12-27'));
+if verLessThan('matlab','9.10')
+    startSimDay='2020-12-27';
+    fVD=find(ismember(cellfun(@(x) x(1:10),tableData.data,'UniformOutput',false),startSimDay));
+else
+    startSimDay=datetime('2020-12-27');
+    fVD=find(ismember(tableData.data.Day,startSimDay.Day) & ...
+        ismember(tableData.data.Month,startSimDay.Month) & ...
+        ismember(tableData.data.Year,startSimDay.Year));
+end
 %first Vaccine Day 27 december
 if days>fVD
     ub(ceil(fVD/7):weeks)=0.2;% ~ 120 mila vaccinazioni gg
