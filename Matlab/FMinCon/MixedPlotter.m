@@ -130,6 +130,13 @@ hold on
 legend('Fit','Opt1','Opt2','Opt3','Opt4');
 legend('Location','bestoutside');
 title('Preventive Control');
+
+% axlabels={};
+% for i=xticks
+%     axlabels=[axlabels,string(""+i+" ("+(i*7)+")")];
+% end
+% xticklabels(axlabels)
+
 set(gcf,'Position', get(0, 'ScreenSize')./[1 1 2 1]);
 
 ContrComp=gcf;
