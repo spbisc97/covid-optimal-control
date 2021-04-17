@@ -6,18 +6,18 @@ clc
 warning ('off','all');
 
 %load alredy optimized data
-load_data_fitting=0; %true/false 1/0
-load_data_optimization=0;
+load_data_fitting=1; %true/false 1/0
+load_data_optimization=1;
 %save data to disk
-save_info=1;
+save_info=0;
 
 %let functions run
-fitting=1;
+fitting=0;
 
-optimization1=1;
-optimization2=1;
-optimization3=1;
-optimization4=1;
+optimization1=0;
+optimization2=0;
+optimization3=0;
+optimization4=0;
 
 optu1=0;optu2=0;optu3=0;optu4=0;
 
@@ -172,7 +172,7 @@ end
 
 %% PARAMETERS FITTING (beta, sigma1, sigma2)
 disp("PARAMETERS FITTING")
-descr=["From " tableData.data(1) "to" tableData.data(days)];
+descr=["From " datestr(tableData.data(1)) "to" datestr(tableData.data(days))];
 disp(join(descr));
 
 %load already computed fitting parameters, for faster or none computation
